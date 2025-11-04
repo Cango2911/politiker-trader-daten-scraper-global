@@ -100,51 +100,142 @@ class UsaScraper extends BaseScraper {
    */
   async extractTradesFromPage() {
     try {
+      // Logge zuerst die HTML-Struktur für Debugging
+      const htmlStructure = await this.page.evaluate(() => {
+        const container = document.querySelector('body');
+        return container ? container.innerHTML.substring(0, 5000) : 'No body found';
+      });
+      logger.debug(`HTML Structure (first 5000 chars): ${htmlStructure}`);
+      
       const trades = await this.page.evaluate(() => {
-        const rows = Array.from(document.querySelectorAll('.q-tr'));
+        // Versuche verschiedene Selektoren
+        let rows = [];
         
-        return rows.map(row => {
+        // Versuch 1: Original Quasar-Struktur
+        rows = Array.from(document.querySelectorAll('.q-tr'));
+        
+        // Versuch 2: Moderne Trade-Divs
+        if (rows.length === 0) {
+          rows = Array.from(document.querySelectorAll('div[class*="trade-row"], div[class*="trade-item"]'));
+        }
+        
+        // Versuch 3: Tabellen-Rows
+        if (rows.length === 0) {
+          rows = Array.from(document.querySelectorAll('table tbody tr'));
+        }
+        
+        // Versuch 4: Jedes div mit "trade" im Klassennamen
+        if (rows.length === 0) {
+          rows = Array.from(document.querySelectorAll('div[class*="trade"]'));
+        }
+        
+        console.log(`Found ${rows.length} potential trade rows`);
+        
+        return rows.map((row, index) => {
           try {
-            // Politiker-Name
-            const politicianElement = row.querySelector('.q-fieldset a.text-default');
-            const politicianName = politicianElement ? politicianElement.textContent.trim() : '';
+            // Extrahiere gesamten Text des Elements
+            const fullText = row.textContent || '';
             
-            // Trade-Typ (kaufen/verkaufen)
-            const tradeTypeElement = row.querySelector('.q-cell.text-center');
-            const tradeType = tradeTypeElement ? tradeTypeElement.textContent.trim() : '';
+            // Politiker-Name - versuche verschiedene Selektoren
+            let politicianName = '';
+            const politicianSelectors = [
+              '.q-fieldset a.text-default',
+              'a[href*="/politicians/"]',
+              '[class*="politician"]',
+              'a.politician-name',
+              '.politician',
+            ];
             
-            // Ticker-Symbol
-            const tickerElement = row.querySelector('a[href*="/trades/stocks/"]');
-            const ticker = tickerElement ? tickerElement.textContent.trim() : '';
-            
-            // Asset-Name
-            const assetNameElement = row.querySelector('.q-cell.text-left');
-            const assetName = assetNameElement ? assetNameElement.textContent.trim() : '';
-            
-            // Trade-Größe
-            const sizeElements = row.querySelectorAll('.q-cell');
-            let size = '';
-            for (let i = 0; i < sizeElements.length; i++) {
-              const text = sizeElements[i].textContent.trim();
-              if (text.includes('$') && (text.includes('-') || text.includes('+'))) {
-                size = text;
+            for (const selector of politicianSelectors) {
+              const element = row.querySelector(selector);
+              if (element && element.textContent.trim()) {
+                politicianName = element.textContent.trim();
                 break;
               }
             }
             
-            // Transaktionsdatum
-            const dateElements = row.querySelectorAll('.q-cell');
-            let transactionDate = '';
-            for (let i = 0; i < dateElements.length; i++) {
-              const text = dateElements[i].textContent.trim();
-              if (text.match(/\d{2}\/\d{2}\/\d{4}/)) {
-                transactionDate = text;
+            // Trade-Typ (kaufen/verkaufen)
+            let tradeType = '';
+            const tradeTypeMatch = fullText.match(/\b(Purchase|Sale|Sold|Bought|Buy|Sell)\b/i);
+            if (tradeTypeMatch) {
+              tradeType = tradeTypeMatch[1];
+            }
+            
+            // Ticker-Symbol
+            let ticker = '';
+            const tickerSelectors = [
+              'a[href*="/trades/stocks/"]',
+              '[class*="ticker"]',
+              '.stock-ticker',
+            ];
+            
+            for (const selector of tickerSelectors) {
+              const element = row.querySelector(selector);
+              if (element && element.textContent.trim()) {
+                ticker = element.textContent.trim();
                 break;
               }
+            }
+            
+            // Fallback: Suche nach Ticker-Pattern (2-5 Großbuchstaben)
+            if (!ticker) {
+              const tickerMatch = fullText.match(/\b([A-Z]{2,5})\b/);
+              if (tickerMatch) {
+                ticker = tickerMatch[1];
+              }
+            }
+            
+            // Asset-Name
+            let assetName = '';
+            const assetSelectors = [
+              '.q-cell.text-left',
+              '[class*="asset"]',
+              '.stock-name',
+            ];
+            
+            for (const selector of assetSelectors) {
+              const element = row.querySelector(selector);
+              if (element && element.textContent.trim()) {
+                assetName = element.textContent.trim();
+                break;
+              }
+            }
+            
+            // Trade-Größe (Betragsbereich wie "$1,001 - $15,000")
+            let size = '';
+            const sizeMatch = fullText.match(/\$[\d,]+\s*-\s*\$[\d,]+/);
+            if (sizeMatch) {
+              size = sizeMatch[0];
+            } else {
+              // Einzelner Betrag
+              const singleSizeMatch = fullText.match(/\$[\d,]+/);
+              if (singleSizeMatch) {
+                size = singleSizeMatch[0];
+              }
+            }
+            
+            // Transaktionsdatum (MM/DD/YYYY Format)
+            let transactionDate = '';
+            const dateMatch = fullText.match(/\b(\d{1,2}\/\d{1,2}\/\d{4})\b/);
+            if (dateMatch) {
+              transactionDate = dateMatch[1];
             }
             
             // Source URL
             const sourceUrl = window.location.href;
+            
+            // Logge für Debugging
+            if (index < 3) {
+              console.log(`Trade ${index}:`, {
+                politicianName,
+                tradeType,
+                ticker,
+                assetName,
+                size,
+                transactionDate,
+                fullTextPreview: fullText.substring(0, 200)
+              });
+            }
             
             return {
               politicianName,
@@ -160,9 +251,13 @@ class UsaScraper extends BaseScraper {
             console.error('Fehler beim Parsen einer Trade-Zeile:', error);
             return null;
           }
-        }).filter(trade => trade && trade.politicianName);
+        }).filter(trade => {
+          // Filtere nur Trades mit mindestens einem Politiker-Namen oder Ticker
+          return trade && (trade.politicianName || trade.ticker);
+        });
       });
       
+      logger.info(`${trades.length} Trades erfolgreich extrahiert`);
       return trades;
     } catch (error) {
       logger.error('Fehler beim Extrahieren der Trades:', error);
