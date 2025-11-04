@@ -234,6 +234,201 @@ a:hover {
 }
 
 /* ========================================
+   INDICATORS SECTION (wie CMC)
+   ======================================== */
+
+.indicators-section {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1.5rem 0;
+}
+
+.indicators-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.indicator-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.2s;
+}
+
+.indicator-card:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+}
+
+.indicator-card.hot-card {
+  background: linear-gradient(135deg, rgba(56, 97, 251, 0.1), rgba(139, 92, 246, 0.1));
+  border-color: var(--accent-primary);
+}
+
+.indicator-label {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.indicator-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.indicator-value.sentiment {
+  font-size: 2rem;
+}
+
+.indicator-change {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.change-percent {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--accent-success);
+}
+
+.change-percent.negative {
+  color: var(--accent-danger);
+}
+
+.mini-chart {
+  color: var(--accent-success);
+  opacity: 0.8;
+}
+
+/* Gauges & Sliders */
+.indicator-gauge {
+  margin-top: 0.75rem;
+}
+
+.gauge-bar {
+  height: 6px;
+  background: var(--bg-primary);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.gauge-fill {
+  height: 100%;
+  background: var(--accent-primary);
+  transition: width 0.5s ease;
+  border-radius: 3px;
+}
+
+.gauge-fill.momentum {
+  background: linear-gradient(90deg, var(--accent-danger), var(--accent-warning), var(--accent-success));
+}
+
+.gauge-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: right;
+}
+
+/* Sentiment Meter */
+.sentiment-bar {
+  margin-top: 0.75rem;
+}
+
+.sentiment-track {
+  position: relative;
+  height: 6px;
+  background: linear-gradient(90deg, var(--accent-danger), var(--accent-warning), var(--accent-success));
+  border-radius: 3px;
+  margin-bottom: 0.5rem;
+}
+
+.sentiment-pointer {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  background: white;
+  border: 2px solid var(--bg-primary);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  transition: left 0.5s ease;
+}
+
+.sentiment-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.6875rem;
+  color: var(--text-tertiary);
+}
+
+/* Party Slider */
+.party-slider {
+  margin-top: 0.75rem;
+}
+
+.party-track {
+  display: flex;
+  height: 32px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.party-left,
+.party-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: width 0.5s ease;
+}
+
+.party-left {
+  background: rgba(59, 130, 246, 0.3);
+  color: #3B82F6;
+}
+
+.party-right {
+  background: rgba(239, 68, 68, 0.3);
+  color: #EF4444;
+}
+
+.party-ratio {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* Hot Topic */
+.hot-content {
+  margin-top: 0.75rem;
+}
+
+.hot-ticker {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  margin-bottom: 0.25rem;
+}
+
+.hot-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* ========================================
    FILTER BAR
    ======================================== */
 

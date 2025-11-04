@@ -38,25 +38,84 @@
         </div>
     </header>
 
-    <!-- Summary Bar (wie CMC) -->
-    <section class="summary-bar">
+    <!-- Indicators (wie CMC) -->
+    <section class="indicators-section">
         <div class="container-fluid">
-            <div class="summary-cards">
-                <div class="summary-card">
-                    <div class="summary-label">Total Trades</div>
-                    <div class="summary-value" id="summaryTrades">...</div>
+            <div class="indicators-grid">
+                <!-- Total Volume -->
+                <div class="indicator-card">
+                    <div class="indicator-label">Total Volume</div>
+                    <div class="indicator-value" id="totalVolume">$0</div>
+                    <div class="indicator-change" id="volumeChange">
+                        <span class="change-percent">+0%</span>
+                        <svg class="mini-chart" width="80" height="30" id="volumeChart">
+                            <polyline fill="none" stroke="currentColor" stroke-width="2" points="0,25 20,20 40,15 60,10 80,5"></polyline>
+                        </svg>
+                    </div>
                 </div>
-                <div class="summary-card">
-                    <div class="summary-label">Politiker</div>
-                    <div class="summary-value" id="summaryPoliticians">...</div>
+                
+                <!-- Activity Score -->
+                <div class="indicator-card">
+                    <div class="indicator-label">Activity Score</div>
+                    <div class="indicator-value" id="activityScore">0</div>
+                    <div class="indicator-gauge">
+                        <div class="gauge-bar">
+                            <div class="gauge-fill" id="activityFill" style="width: 0%"></div>
+                        </div>
+                        <div class="gauge-label" id="activityLabel">Niedrig</div>
+                    </div>
                 </div>
-                <div class="summary-card">
-                    <div class="summary-label">Länder Aktiv</div>
-                    <div class="summary-value" id="summaryCountries">...</div>
+                
+                <!-- Insider Confidence -->
+                <div class="indicator-card">
+                    <div class="indicator-label">Insider Confidence</div>
+                    <div class="indicator-value sentiment" id="sentimentScore">50</div>
+                    <div class="sentiment-bar">
+                        <div class="sentiment-track">
+                            <div class="sentiment-pointer" id="sentimentPointer" style="left: 50%"></div>
+                        </div>
+                        <div class="sentiment-labels">
+                            <span>Bearish</span>
+                            <span>Bullish</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="summary-card">
-                    <div class="summary-label">Letzte 24h</div>
-                    <div class="summary-value success" id="summaryNew">+0</div>
+                
+                <!-- Party Balance -->
+                <div class="indicator-card">
+                    <div class="indicator-label">Party Balance</div>
+                    <div class="party-slider">
+                        <div class="party-track">
+                            <div class="party-left" id="partyLeft" style="width: 50%">
+                                <span id="partyLeftName">Dem</span>
+                            </div>
+                            <div class="party-right" id="partyRight" style="width: 50%">
+                                <span id="partyRightName">Rep</span>
+                            </div>
+                        </div>
+                        <div class="party-ratio" id="partyRatio">50 / 50</div>
+                    </div>
+                </div>
+                
+                <!-- Trend Momentum -->
+                <div class="indicator-card">
+                    <div class="indicator-label">7-Day Momentum</div>
+                    <div class="indicator-value" id="momentumScore">Neutral</div>
+                    <div class="indicator-gauge">
+                        <div class="gauge-bar">
+                            <div class="gauge-fill momentum" id="momentumFill" style="width: 50%"></div>
+                        </div>
+                        <div class="gauge-label" id="momentumLabel">0%</div>
+                    </div>
+                </div>
+                
+                <!-- Hot Topic -->
+                <div class="indicator-card hot-card">
+                    <div class="indicator-label">🔥 Trending Asset</div>
+                    <div class="hot-content">
+                        <div class="hot-ticker" id="hotTicker">NVDA</div>
+                        <div class="hot-desc" id="hotDesc">Most traded stock this week - Politicians buying heavily</div>
+                    </div>
                 </div>
             </div>
         </div>
