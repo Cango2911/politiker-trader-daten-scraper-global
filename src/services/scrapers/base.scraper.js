@@ -173,6 +173,31 @@ class BaseScraper {
    * Normalisiert Trade-Daten
    */
   normalizeTrade(rawTrade) {
+    // Parse sizeMin und sizeMax
+    let sizeMin = null;
+    let sizeMax = null;
+    
+    // Verwende explizite Werte falls vorhanden
+    if (rawTrade.sizeMin) {
+      sizeMin = this.parseNumber(rawTrade.sizeMin);
+    } else if (rawTrade.size) {
+      // Fallback: Parse aus size String
+      sizeMin = this.parseSizeMin(rawTrade.size);
+    }
+    
+    if (rawTrade.sizeMax) {
+      sizeMax = this.parseNumber(rawTrade.sizeMax);
+    } else if (rawTrade.size) {
+      // Fallback: Parse aus size String
+      sizeMax = this.parseSizeMax(rawTrade.size);
+    }
+    
+    // Parse price
+    let price = null;
+    if (rawTrade.price) {
+      price = this.parseNumber(rawTrade.price);
+    }
+    
     return {
       country: this.countryConfig.code,
       politician: {
@@ -188,9 +213,9 @@ class BaseScraper {
         assetName: rawTrade.assetName || null,
         assetType: this.normalizeAssetType(rawTrade.assetType),
         size: rawTrade.size || null,
-        sizeMin: this.parseSizeMin(rawTrade.size),
-        sizeMax: this.parseSizeMax(rawTrade.size),
-        price: rawTrade.price || null,
+        sizeMin: sizeMin,
+        sizeMax: sizeMax,
+        price: price,
       },
       dates: {
         transaction: this.parseDate(rawTrade.transactionDate),
@@ -230,6 +255,20 @@ class BaseScraper {
     if (normalized.includes('mutual') || normalized.includes('fund')) return 'mutual_fund';
     if (normalized.includes('crypto')) return 'cryptocurrency';
     return 'other';
+  }
+
+  /**
+   * Parst eine Zahl aus einem String (entfernt $, Kommas, etc.)
+   */
+  parseNumber(value) {
+    if (!value) return null;
+    if (typeof value === 'number') return value;
+    
+    // Entferne $, Kommas und andere nicht-numerische Zeichen
+    const cleaned = value.toString().replace(/[$,]/g, '');
+    const parsed = parseFloat(cleaned);
+    
+    return isNaN(parsed) ? null : parsed;
   }
 
   /**

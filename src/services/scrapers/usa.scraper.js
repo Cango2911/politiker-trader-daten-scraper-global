@@ -97,260 +97,220 @@ class UsaScraper extends BaseScraper {
 
   /**
    * Extrahiert Trades von der aktuellen Seite
+   * Basierend auf Capitol Trades HTML-Struktur (November 2025)
    */
   async extractTradesFromPage() {
     try {
-      // Logge zuerst die HTML-Struktur für Debugging
-      const htmlStructure = await this.page.evaluate(() => {
-        const container = document.querySelector('body');
-        return container ? container.innerHTML.substring(0, 5000) : 'No body found';
-      });
-      logger.debug(`HTML Structure (first 5000 chars): ${htmlStructure}`);
-      
       const trades = await this.page.evaluate(() => {
-        // Versuche verschiedene Selektoren
-        let rows = [];
+        // Finde alle Table Rows (tr) die Trades enthalten
+        const rows = Array.from(document.querySelectorAll('table tbody tr'));
         
-        // Versuch 1: Original Quasar-Struktur
-        rows = Array.from(document.querySelectorAll('.q-tr'));
-        
-        // Versuch 2: Moderne Trade-Divs
-        if (rows.length === 0) {
-          rows = Array.from(document.querySelectorAll('div[class*="trade-row"], div[class*="trade-item"]'));
-        }
-        
-        // Versuch 3: Tabellen-Rows
-        if (rows.length === 0) {
-          rows = Array.from(document.querySelectorAll('table tbody tr'));
-        }
-        
-        // Versuch 4: Jedes div mit "trade" im Klassennamen
-        if (rows.length === 0) {
-          rows = Array.from(document.querySelectorAll('div[class*="trade"]'));
-        }
-        
-        console.log(`Found ${rows.length} potential trade rows`);
+        console.log(`Found ${rows.length} table rows on Capitol Trades`);
         
         return rows.map((row, index) => {
           try {
-            // Extrahiere gesamten Text des Elements
-            const fullText = row.textContent || '';
-            
-            // Politiker-Name und Bild - versuche verschiedene Selektoren
-            let politicianName = '';
-            let politicianImageUrl = '';
-            const politicianSelectors = [
-              '.q-fieldset a.text-default',
-              'a[href*="/politicians/"]',
-              '[class*="politician"]',
-              'a.politician-name',
-              '.politician',
-            ];
-            
-            for (const selector of politicianSelectors) {
-              const element = row.querySelector(selector);
-              if (element && element.textContent.trim()) {
-                politicianName = element.textContent.trim();
-                break;
-              }
+            const cells = row.querySelectorAll('td');
+            if (cells.length < 9) {
+              // Nicht genug Spalten für einen vollständigen Trade
+              return null;
             }
             
-            // Bild-URL extrahieren - suche nach img innerhalb der Row
-            const imageSelectors = [
-              'img[src*="politician"]',
-              'img[src*="avatar"]',
-              'img[src*="photo"]',
-              '.q-avatar img',
-              'img',
-            ];
+            // ========== POLITIKER (Spalte 1) ==========
+            const politicianCell = cells[0];
+            const politicianNameEl = politicianCell.querySelector('.politician-name a, h2.politician-name a');
+            const politicianName = politicianNameEl ? politicianNameEl.textContent.trim() : '';
             
-            for (const selector of imageSelectors) {
-              const imgElement = row.querySelector(selector);
-              if (imgElement && imgElement.src) {
-                politicianImageUrl = imgElement.src;
-                break;
-              }
+            const politicianImgEl = politicianCell.querySelector('img');
+            const politicianImageUrl = politicianImgEl ? politicianImgEl.src : '';
+            
+            // ========== ASSET (Spalte 2) ==========
+            const assetCell = cells[1];
+            const assetNameEl = assetCell.querySelector('.issuer-name a, h3.issuer-name a');
+            const assetName = assetNameEl ? assetNameEl.textContent.trim() : '';
+            
+            const tickerEl = assetCell.querySelector('.issuer-ticker, span.q-field.issuer-ticker');
+            let ticker = tickerEl ? tickerEl.textContent.trim() : '';
+            // Entferne "N/A" als Ticker
+            if (ticker === 'N/A') {
+              ticker = '';
             }
             
-            // Trade-Typ (kaufen/verkaufen)
-            let tradeType = '';
-            // Suche nach Trade-Type-Indikatoren
-            const tradeTypePatterns = [
-              { pattern: /\b(Purchase|Bought|Buy|Buying)\b/i, type: 'Purchase' },
-              { pattern: /\b(Sale|Sold|Sell|Selling)\b/i, type: 'Sale' },
-              { pattern: /\b(Exchange|Swap)\b/i, type: 'Exchange' }
-            ];
-            
-            for (const { pattern, type } of tradeTypePatterns) {
-              if (fullText.match(pattern)) {
-                tradeType = type;
-                break;
-              }
-            }
-            
-            // Versuche aus CSS-Klassen zu ermitteln
-            if (!tradeType) {
-              const classList = row.className || '';
-              if (classList.includes('purchase') || classList.includes('buy')) {
-                tradeType = 'Purchase';
-              } else if (classList.includes('sale') || classList.includes('sell')) {
-                tradeType = 'Sale';
-              }
-            }
-            
-            // Ticker-Symbol
-            let ticker = '';
-            const tickerSelectors = [
-              'a[href*="/trades/stocks/"]',
-              '[class*="ticker"]',
-              '.stock-ticker',
-            ];
-            
-            for (const selector of tickerSelectors) {
-              const element = row.querySelector(selector);
-              if (element && element.textContent.trim()) {
-                ticker = element.textContent.trim();
-                break;
-              }
-            }
-            
-            // Fallback: Suche nach Ticker-Pattern (2-5 Großbuchstaben)
-            if (!ticker) {
-              const tickerMatch = fullText.match(/\b([A-Z]{2,5})\b/);
-              if (tickerMatch) {
-                ticker = tickerMatch[1];
-              }
-            }
-            
-            // Asset-Name
-            let assetName = '';
-            const assetSelectors = [
-              '.q-cell.text-left',
-              '[class*="asset"]',
-              '.stock-name',
-            ];
-            
-            for (const selector of assetSelectors) {
-              const element = row.querySelector(selector);
-              if (element && element.textContent.trim()) {
-                assetName = element.textContent.trim();
-                break;
-              }
-            }
-            
-            // Trade-Größe (Betragsbereich wie "$1,001 - $15,000")
-            let size = '';
-            const sizeMatch = fullText.match(/\$[\d,]+\s*-\s*\$[\d,]+/);
-            if (sizeMatch) {
-              size = sizeMatch[0];
-            } else {
-              // Einzelner Betrag
-              const singleSizeMatch = fullText.match(/\$[\d,]+/);
-              if (singleSizeMatch) {
-                size = singleSizeMatch[0];
-              }
-            }
-            
-            // Transaktionsdatum (MM/DD/YYYY Format)
+            // ========== TRADED DATE (Spalte 4) ==========
+            // Spalte 3 ist "Filed Date", Spalte 4 ist "Traded Date" (wir wollen Traded Date)
+            const tradedDateCell = cells[3];
             let transactionDate = '';
-            // Suche nach allen Datumsformaten
-            const datePatterns = [
-              /\b(\d{1,2}\/\d{1,2}\/\d{4})\b/,  // MM/DD/YYYY
-              /\b(\d{4}-\d{2}-\d{2})\b/,        // YYYY-MM-DD
-              /\b([A-Za-z]{3}\s+\d{1,2},\s+\d{4})\b/  // Nov 4, 2025
-            ];
             
-            for (const pattern of datePatterns) {
-              const match = fullText.match(pattern);
-              if (match) {
-                transactionDate = match[1];
-                break;
-              }
+            // Extrahiere Datum aus der Struktur: <div class="text-size-3 font-medium">30 Oct</div>
+            const dateTextEl = tradedDateCell.querySelector('.text-size-3, div[class*="text"]');
+            const yearTextEl = tradedDateCell.querySelector('.text-size-2, div[class*="text"]');
+            
+            if (dateTextEl && yearTextEl) {
+              const dateText = dateTextEl.textContent.trim(); // "30 Oct"
+              const yearText = yearTextEl.textContent.trim(); // "2025"
+              transactionDate = `${dateText} ${yearText}`; // "30 Oct 2025"
+            } else {
+              // Fallback: gesamter Text der Zelle
+              transactionDate = tradedDateCell.textContent.trim();
             }
             
-            // Versuche Datum aus spezifischen Elementen zu extrahieren
-            if (!transactionDate) {
-              const dateElements = row.querySelectorAll('[class*="date"], time, [datetime]');
-              for (const el of dateElements) {
-                const text = el.textContent?.trim() || el.getAttribute('datetime') || '';
-                if (text && text.match(/\d{1,2}\/\d{1,2}\/\d{4}/)) {
-                  transactionDate = text;
-                  break;
+            // ========== TRADE TYPE (Spalte 7) ==========
+            const tradeTypeCell = cells[6];
+            const tradeTypeEl = tradeTypeCell.querySelector('.tx-type');
+            let tradeType = '';
+            
+            if (tradeTypeEl) {
+              if (tradeTypeEl.classList.contains('tx-type--buy')) {
+                tradeType = 'Purchase';
+              } else if (tradeTypeEl.classList.contains('tx-type--sell')) {
+                tradeType = 'Sale';
+              } else {
+                // Fallback auf Text
+                const typeText = tradeTypeEl.textContent.trim().toLowerCase();
+                if (typeText.includes('buy')) {
+                  tradeType = 'Purchase';
+                } else if (typeText.includes('sell')) {
+                  tradeType = 'Sale';
                 }
               }
             }
             
-            // Source URL
+            // ========== SIZE (Spalte 8) ==========
+            const sizeCell = cells[7];
+            const sizeTextEl = sizeCell.querySelector('.trade-size span.mt-1, span[class*="text-size"]');
+            let size = '';
+            let sizeMin = '';
+            
+            if (sizeTextEl) {
+              const sizeText = sizeTextEl.textContent.trim(); // "15K–50K", "1K–15K"
+              
+              // Parse z.B. "15K–50K" zu "$15,000 - $50,000"
+              const rangeMatch = sizeText.match(/(\d+)K[–-](\d+)K/);
+              if (rangeMatch) {
+                const minK = parseInt(rangeMatch[1]);
+                const maxK = parseInt(rangeMatch[2]);
+                sizeMin = `$${minK},000`;
+                size = `$${maxK},000`;
+              } else {
+                // Einzelwert oder anderes Format
+                const singleMatch = sizeText.match(/(\d+)K/);
+                if (singleMatch) {
+                  const valueK = parseInt(singleMatch[1]);
+                  size = `$${valueK},000`;
+                  sizeMin = size;
+                } else {
+                  // Falls direkt ein Dollar-Betrag steht
+                  size = sizeText;
+                  sizeMin = sizeText;
+                }
+              }
+            }
+            
+            // ========== PRICE (Spalte 9, vorletzte vor Pfeil) ==========
+            const priceCell = cells[8];
+            const priceText = priceCell.textContent.trim(); // "$271.40", "$109,556.00", "N/A"
+            
+            // Entferne "N/A" als Price
+            const price = (priceText && priceText !== 'N/A') ? priceText : '';
+            
+            // ========== SOURCE URL ==========
             const sourceUrl = window.location.href;
             
-            // Logge für Debugging
+            // Logge die ersten 3 Trades für Debugging
             if (index < 3) {
-              console.log(`Trade ${index}:`, {
+              console.log(`Trade ${index + 1}:`, {
                 politicianName,
-                politicianImageUrl,
-                tradeType,
                 ticker,
                 assetName,
-                size,
+                tradeType,
                 transactionDate,
-                fullTextPreview: fullText.substring(0, 200)
+                size,
+                sizeMin,
+                price
               });
             }
             
             return {
               politicianName,
               politicianImageUrl,
-              tradeType,
               ticker,
               assetName,
-              size,
+              tradeType,
               transactionDate,
+              size,
+              sizeMin,
+              price,
               sourceUrl,
               assetType: 'stock',
             };
           } catch (error) {
-            console.error('Fehler beim Parsen einer Trade-Zeile:', error);
+            console.error(`Fehler beim Parsen von Trade-Zeile ${index}:`, error);
             return null;
           }
         }).filter(trade => {
-          // Filtere nur Trades mit mindestens einem Politiker-Namen oder Ticker
-          return trade && (trade.politicianName || trade.ticker);
+          // Filtere nur Trades mit Politiker-Namen UND Asset-Name
+          return trade && trade.politicianName && trade.assetName;
         });
       });
       
-      logger.info(`${trades.length} Trades erfolgreich extrahiert`);
+      logger.info(`✅ ${trades.length} Trades erfolgreich von Capitol Trades extrahiert`);
       return trades;
     } catch (error) {
-      logger.error('Fehler beim Extrahieren der Trades:', error);
+      logger.error('❌ Fehler beim Extrahieren der Trades:', error);
       return [];
     }
   }
 
   /**
-   * Parst US-Datumsformat (MM/DD/YYYY)
+   * Parst verschiedene Datumsformate von Capitol Trades
+   * Unterstützt: "30 Oct 2025", "Oct 30 2025", "10/30/2025"
    */
   parseDate(dateString) {
     if (!dateString) {
-      // Wenn kein Datum vorhanden ist, verwende aktuelles Datum
-      // (besser als null, um Validierungsfehler zu vermeiden)
       logger.warn('Kein Datum gefunden, verwende aktuelles Datum als Fallback');
       return new Date();
     }
     
     try {
-      // US-Format: MM/DD/YYYY oder M/D/YYYY
-      const match = dateString.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      // Format 1: "30 Oct 2025" oder "Oct 30 2025"
+      const monthNames = {
+        'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
+        'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
+      };
+      
+      // Versuch: "30 Oct 2025"
+      let match = dateString.match(/(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})/);
+      if (match) {
+        const [_, day, monthStr, year] = match;
+        const month = monthNames[monthStr.toLowerCase()];
+        if (month !== undefined) {
+          const date = new Date(parseInt(year), month, parseInt(day));
+          if (!isNaN(date.getTime())) {
+            return date;
+          }
+        }
+      }
+      
+      // Versuch: "Oct 30 2025"
+      match = dateString.match(/([A-Za-z]{3})\s+(\d{1,2})\s+(\d{4})/);
+      if (match) {
+        const [_, monthStr, day, year] = match;
+        const month = monthNames[monthStr.toLowerCase()];
+        if (month !== undefined) {
+          const date = new Date(parseInt(year), month, parseInt(day));
+          if (!isNaN(date.getTime())) {
+            return date;
+          }
+        }
+      }
+      
+      // Format 2: US-Format MM/DD/YYYY oder M/D/YYYY
+      match = dateString.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
       if (match) {
         const [_, month, day, year] = match;
         const date = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
-        
-        // Validiere, ob das Datum gültig ist
-        if (isNaN(date.getTime())) {
-          logger.warn(`Ungültiges Datum: ${dateString}, verwende aktuelles Datum`);
-          return new Date();
+        if (!isNaN(date.getTime())) {
+          return date;
         }
-        
-        return date;
       }
       
       // Fallback auf Standard-Parsing
@@ -360,10 +320,10 @@ class UsaScraper extends BaseScraper {
       }
       
       // Letzter Fallback: aktuelles Datum
-      logger.warn(`Konnte Datum nicht parsen: ${dateString}, verwende aktuelles Datum`);
+      logger.warn(`⚠️  Konnte Datum nicht parsen: ${dateString}, verwende aktuelles Datum`);
       return new Date();
     } catch (error) {
-      logger.error(`Fehler beim Parsen des Datums ${dateString}:`, error);
+      logger.error(`❌ Fehler beim Parsen des Datums ${dateString}:`, error);
       return new Date();
     }
   }
