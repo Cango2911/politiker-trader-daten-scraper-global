@@ -14,6 +14,7 @@ let allCountries = [];
 document.addEventListener('DOMContentLoaded', () => {
   initializeApp();
   setupEventListeners();
+  initializeTradingViewWidgets();
 });
 
 async function initializeApp() {
@@ -21,6 +22,146 @@ async function initializeApp() {
   await loadSummaryStats();
   await loadCountriesForFilter();
   await loadTrades();
+}
+
+// ========================================
+// TRADINGVIEW WIDGETS
+// ========================================
+
+function initializeTradingViewWidgets() {
+  // 1. Market Overview Widget
+  new TradingView.MediumWidget({
+    "symbols": [
+      ["Apple", "AAPL|1D"],
+      ["NVIDIA", "NVDA|1D"],
+      ["Microsoft", "MSFT|1D"],
+      ["Tesla", "TSLA|1D"],
+      ["Amazon", "AMZN|1D"]
+    ],
+    "chartOnly": false,
+    "width": "100%",
+    "height": "200",
+    "locale": "de_DE",
+    "colorTheme": "dark",
+    "gridLineColor": "#2A2E39",
+    "trendLineColor": "#3861FB",
+    "fontColor": "#B0B0B8",
+    "underLineColor": "#3861FB40",
+    "isTransparent": true,
+    "autosize": false,
+    "container_id": "marketOverview"
+  });
+  
+  // 2. Top Symbols (Meistgehandelte Politiker-Aktien)
+  loadTopPoliticianStocks().then(symbols => {
+    new TradingView.MiniChart({
+      "symbol": symbols[0] || "NASDAQ:AAPL",
+      "width": "100%",
+      "height": "200",
+      "locale": "de_DE",
+      "dateRange": "1M",
+      "colorTheme": "dark",
+      "trendLineColor": "#3861FB",
+      "underLineColor": "#3861FB40",
+      "isTransparent": true,
+      "autosize": false,
+      "largeChartUrl": "",
+      "container_id": "topSymbols"
+    });
+  });
+  
+  // 3. Technical Analysis Widget
+  new TradingView.TechnicalAnalysisWidget({
+    "interval": "1D",
+    "width": "100%",
+    "height": 200,
+    "isTransparent": true,
+    "colorTheme": "dark",
+    "symbol": "NASDAQ:NVDA",
+    "showIntervalTabs": true,
+    "locale": "de_DE",
+    "container_id": "technicalAnalysis"
+  });
+  
+  // 4. Stock Heatmap
+  new TradingView.widget({
+    "width": "100%",
+    "height": 300,
+    "colorTheme": "dark",
+    "dateRange": "1D",
+    "exchange": "US",
+    "showChart": true,
+    "locale": "de_DE",
+    "largeChartUrl": "",
+    "isTransparent": true,
+    "showSymbolLogo": true,
+    "showFloatingTooltip": true,
+    "plotLineColorGrowing": "rgba(22, 199, 132, 1)",
+    "plotLineColorFalling": "rgba(234, 57, 67, 1)",
+    "gridLineColor": "rgba(42, 46, 57, 0)",
+    "scaleFontColor": "rgba(176, 176, 184, 1)",
+    "belowLineFillColorGrowing": "rgba(22, 199, 132, 0.12)",
+    "belowLineFillColorFalling": "rgba(234, 57, 67, 0.12)",
+    "symbolActiveColor": "rgba(56, 97, 251, 0.12)",
+    "container_id": "stockHeatmap"
+  });
+  
+  // 5. Economic Calendar
+  new TradingView.EconomicCalendarWidget({
+    "colorTheme": "dark",
+    "isTransparent": true,
+    "width": "100%",
+    "height": 300,
+    "locale": "de_DE",
+    "importanceFilter": "0,1",
+    "container_id": "economicCalendar"
+  });
+  
+  // 6. Stock Screener (Politiker-Portfolio)
+  loadTopPoliticianStocks().then(symbols => {
+    new TradingView.ScreenerWidget({
+      "width": "100%",
+      "height": 400,
+      "defaultColumn": "overview",
+      "defaultScreen": "general",
+      "market": "america",
+      "showToolbar": true,
+      "colorTheme": "dark",
+      "locale": "de_DE",
+      "isTransparent": true,
+      "container_id": "stockScreener"
+    });
+  });
+}
+
+// Lade die meistgehandelten Aktien der Politiker
+async function loadTopPoliticianStocks() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/trades?limit=1000`);
+    const data = await response.json();
+    
+    if (!data.success || !data.data) return ['NASDAQ:AAPL'];
+    
+    // Zähle Ticker-Häufigkeit
+    const tickerCount = {};
+    data.data.forEach(trade => {
+      const ticker = trade.trade?.ticker;
+      if (ticker && ticker !== 'N/A') {
+        tickerCount[ticker] = (tickerCount[ticker] || 0) + 1;
+      }
+    });
+    
+    // Top 5 Ticker
+    const topTickers = Object.entries(tickerCount)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([ticker]) => `NASDAQ:${ticker}`);
+    
+    return topTickers.length > 0 ? topTickers : ['NASDAQ:AAPL'];
+  } catch (error) {
+    console.error('Error loading top stocks:', error);
+    return ['NASDAQ:AAPL'];
+  }
 }
 
 function setupEventListeners() {
@@ -84,21 +225,36 @@ async function checkAPIStatus() {
 
 async function loadSummaryStats() {
   try {
+    // Lade Trending Market Data von Backend (mit echten TradingView/Alpha Vantage Daten)
+    const marketRes = await fetch(`${API_BASE_URL}/api/market/trending`);
+    const marketData = await marketRes.json();
+    
     // Lade alle Trades für Berechnungen
     const allTradesRes = await fetch(`${API_BASE_URL}/api/trades?limit=1000`);
     const allTrades = await allTradesRes.json();
     const trades = allTrades.data || [];
     
-    // 1. TOTAL VOLUME
-    const totalVolume = trades.reduce((sum, t) => sum + (t.trade?.sizeMin || 0), 0);
-    document.getElementById('totalVolume').textContent = formatAmount(totalVolume);
+    // 1. TOTAL VOLUME - ECHTE BÖRSENDATEN
+    let totalVolume = 0;
+    let volumeChange = 0;
     
-    // Volume Change (simuliert - kann später mit historischen Daten berechnet werden)
-    const volumeChangeEl = document.getElementById('volumeChange');
-    if (volumeChangeEl) {
-      const changePercent = Math.random() > 0.5 ? `+${(Math.random() * 10).toFixed(2)}%` : `-${(Math.random() * 10).toFixed(2)}%`;
-      volumeChangeEl.querySelector('.change-percent').textContent = changePercent;
-      volumeChangeEl.querySelector('.change-percent').className = changePercent.startsWith('+') ? 'change-percent' : 'change-percent negative';
+    if (marketData.success && marketData.data?.aggregatedMetrics) {
+      const metrics = marketData.data.aggregatedMetrics;
+      totalVolume = metrics.totalVolume || 0;
+      volumeChange = metrics.averageChange || 0;
+      
+      document.getElementById('totalVolume').textContent = formatVolume(totalVolume);
+      
+      const volumeChangeEl = document.getElementById('volumeChange');
+      if (volumeChangeEl) {
+        const changePercent = volumeChange >= 0 ? `+${volumeChange.toFixed(2)}%` : `${volumeChange.toFixed(2)}%`;
+        volumeChangeEl.querySelector('.change-percent').textContent = changePercent;
+        volumeChangeEl.querySelector('.change-percent').className = volumeChange >= 0 ? 'change-percent' : 'change-percent negative';
+      }
+    } else {
+      // Fallback auf Trade-Summen
+      totalVolume = trades.reduce((sum, t) => sum + (t.trade?.sizeMin || 0), 0);
+      document.getElementById('totalVolume').textContent = formatAmount(totalVolume);
     }
     
     // 2. ACTIVITY SCORE (Anzahl Trades pro Tag)
@@ -368,6 +524,20 @@ function formatAmount(amount) {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(amount);
+}
+
+function formatVolume(volume) {
+  if (!volume || volume === 0) return '$0';
+  
+  if (volume >= 1000000000) {
+    return `$${(volume / 1000000000).toFixed(2)}B`;
+  } else if (volume >= 1000000) {
+    return `$${(volume / 1000000).toFixed(2)}M`;
+  } else if (volume >= 1000) {
+    return `$${(volume / 1000).toFixed(2)}K`;
+  }
+  
+  return `$${volume.toFixed(0)}`;
 }
 
 function formatDate(dateString) {

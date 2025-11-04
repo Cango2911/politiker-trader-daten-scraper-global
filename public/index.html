@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- TradingView Widget Library -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -38,83 +40,55 @@
         </div>
     </header>
 
-    <!-- Indicators (wie CMC) -->
+    <!-- TradingView Indicators (Echte Marktdaten) -->
     <section class="indicators-section">
         <div class="container-fluid">
             <div class="indicators-grid">
-                <!-- Total Volume -->
-                <div class="indicator-card">
-                    <div class="indicator-label">Total Volume</div>
-                    <div class="indicator-value" id="totalVolume">$0</div>
-                    <div class="indicator-change" id="volumeChange">
-                        <span class="change-percent">+0%</span>
-                        <svg class="mini-chart" width="80" height="30" id="volumeChart">
-                            <polyline fill="none" stroke="currentColor" stroke-width="2" points="0,25 20,20 40,15 60,10 80,5"></polyline>
-                        </svg>
+                <!-- Market Overview Widget -->
+                <div class="indicator-card tradingview-widget">
+                    <div class="indicator-label">Market Overview</div>
+                    <div class="tradingview-widget-container" id="marketOverview">
+                        <div class="tradingview-widget-container__widget"></div>
                     </div>
                 </div>
                 
-                <!-- Activity Score -->
-                <div class="indicator-card">
-                    <div class="indicator-label">Activity Score</div>
-                    <div class="indicator-value" id="activityScore">0</div>
-                    <div class="indicator-gauge">
-                        <div class="gauge-bar">
-                            <div class="gauge-fill" id="activityFill" style="width: 0%"></div>
-                        </div>
-                        <div class="gauge-label" id="activityLabel">Niedrig</div>
+                <!-- Top Symbols (Politiker-Favoriten) -->
+                <div class="indicator-card tradingview-widget">
+                    <div class="indicator-label">Top Politician Stocks</div>
+                    <div class="tradingview-widget-container" id="topSymbols">
+                        <div class="tradingview-widget-container__widget"></div>
                     </div>
                 </div>
                 
-                <!-- Insider Confidence -->
-                <div class="indicator-card">
-                    <div class="indicator-label">Insider Confidence</div>
-                    <div class="indicator-value sentiment" id="sentimentScore">50</div>
-                    <div class="sentiment-bar">
-                        <div class="sentiment-track">
-                            <div class="sentiment-pointer" id="sentimentPointer" style="left: 50%"></div>
-                        </div>
-                        <div class="sentiment-labels">
-                            <span>Bearish</span>
-                            <span>Bullish</span>
-                        </div>
+                <!-- Technical Analysis -->
+                <div class="indicator-card tradingview-widget">
+                    <div class="indicator-label">Technical Analysis</div>
+                    <div class="tradingview-widget-container" id="technicalAnalysis">
+                        <div class="tradingview-widget-container__widget"></div>
                     </div>
                 </div>
                 
-                <!-- Party Balance -->
-                <div class="indicator-card">
-                    <div class="indicator-label">Party Balance</div>
-                    <div class="party-slider">
-                        <div class="party-track">
-                            <div class="party-left" id="partyLeft" style="width: 50%">
-                                <span id="partyLeftName">Dem</span>
-                            </div>
-                            <div class="party-right" id="partyRight" style="width: 50%">
-                                <span id="partyRightName">Rep</span>
-                            </div>
-                        </div>
-                        <div class="party-ratio" id="partyRatio">50 / 50</div>
+                <!-- Market Heatmap -->
+                <div class="indicator-card tradingview-widget wide">
+                    <div class="indicator-label">Stock Heatmap</div>
+                    <div class="tradingview-widget-container" id="stockHeatmap">
+                        <div class="tradingview-widget-container__widget"></div>
                     </div>
                 </div>
                 
-                <!-- Trend Momentum -->
-                <div class="indicator-card">
-                    <div class="indicator-label">7-Day Momentum</div>
-                    <div class="indicator-value" id="momentumScore">Neutral</div>
-                    <div class="indicator-gauge">
-                        <div class="gauge-bar">
-                            <div class="gauge-fill momentum" id="momentumFill" style="width: 50%"></div>
-                        </div>
-                        <div class="gauge-label" id="momentumLabel">0%</div>
+                <!-- Economic Calendar -->
+                <div class="indicator-card tradingview-widget wide">
+                    <div class="indicator-label">Economic Calendar</div>
+                    <div class="tradingview-widget-container" id="economicCalendar">
+                        <div class="tradingview-widget-container__widget"></div>
                     </div>
                 </div>
                 
-                <!-- Hot Topic -->
-                <div class="indicator-card hot-card">
-                    <div class="indicator-label">🔥 Trending Asset</div>
-                    <div class="hot-content">
-                        <div class="hot-ticker" id="hotTicker">NVDA</div>
-                        <div class="hot-desc" id="hotDesc">Most traded stock this week - Politicians buying heavily</div>
+                <!-- Screener Widget -->
+                <div class="indicator-card tradingview-widget extra-wide">
+                    <div class="indicator-label">Stock Screener (Politiker-Portfolio)</div>
+                    <div class="tradingview-widget-container" id="stockScreener">
+                        <div class="tradingview-widget-container__widget"></div>
                     </div>
                 </div>
             </div>
@@ -165,6 +139,8 @@
         </div>
     </footer>
 
+    <!-- TradingView Widget Script -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script src="/js/app.js"></script>
 </body>
 </html>
