@@ -61,6 +61,17 @@ class GermanyScraper extends BaseScraper {
               name = fullText.split('\n')[0].trim();
             }
             
+            // Bild extrahieren
+            let imageUrl = '';
+            const imgElement = element.querySelector('img');
+            if (imgElement && imgElement.src) {
+              imageUrl = imgElement.src;
+              // Wenn relativer Pfad, zu absoluter URL konvertieren
+              if (imageUrl.startsWith('/')) {
+                imageUrl = 'https://www.bundestag.de' + imageUrl;
+              }
+            }
+            
             // Partei extrahieren
             let party = '';
             const partyMatch = fullText.match(/(CDU|CSU|SPD|FDP|GRÜNE|DIE LINKE|AfD)/i);
@@ -70,6 +81,7 @@ class GermanyScraper extends BaseScraper {
             
             return {
               politicianName: name,
+              politicianImageUrl: imageUrl,
               party,
               tradeType: 'Disclosure',
               ticker: 'N/A',

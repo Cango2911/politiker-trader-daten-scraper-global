@@ -136,8 +136,9 @@ class UsaScraper extends BaseScraper {
             // Extrahiere gesamten Text des Elements
             const fullText = row.textContent || '';
             
-            // Politiker-Name - versuche verschiedene Selektoren
+            // Politiker-Name und Bild - versuche verschiedene Selektoren
             let politicianName = '';
+            let politicianImageUrl = '';
             const politicianSelectors = [
               '.q-fieldset a.text-default',
               'a[href*="/politicians/"]',
@@ -150,6 +151,23 @@ class UsaScraper extends BaseScraper {
               const element = row.querySelector(selector);
               if (element && element.textContent.trim()) {
                 politicianName = element.textContent.trim();
+                break;
+              }
+            }
+            
+            // Bild-URL extrahieren - suche nach img innerhalb der Row
+            const imageSelectors = [
+              'img[src*="politician"]',
+              'img[src*="avatar"]',
+              'img[src*="photo"]',
+              '.q-avatar img',
+              'img',
+            ];
+            
+            for (const selector of imageSelectors) {
+              const imgElement = row.querySelector(selector);
+              if (imgElement && imgElement.src) {
+                politicianImageUrl = imgElement.src;
                 break;
               }
             }
@@ -269,6 +287,7 @@ class UsaScraper extends BaseScraper {
             if (index < 3) {
               console.log(`Trade ${index}:`, {
                 politicianName,
+                politicianImageUrl,
                 tradeType,
                 ticker,
                 assetName,
@@ -280,6 +299,7 @@ class UsaScraper extends BaseScraper {
             
             return {
               politicianName,
+              politicianImageUrl,
               tradeType,
               ticker,
               assetName,

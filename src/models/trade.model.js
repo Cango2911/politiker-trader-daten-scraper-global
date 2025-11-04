@@ -39,6 +39,10 @@ const tradeSchema = new mongoose.Schema({
       type: String,
       required: false,
     },
+    imageUrl: {
+      type: String,
+      required: false,
+    },
   },
   
   // Handels-Informationen

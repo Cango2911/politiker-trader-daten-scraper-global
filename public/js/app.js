@@ -293,14 +293,28 @@ function renderTradesGrid(trades) {
   
   const html = `
     <div class="trades-grid">
-      ${trades.map(trade => `
+      ${trades.map(trade => {
+        const politicianName = trade.politician?.name || 'Unbekannt';
+        const imageUrl = trade.politician?.imageUrl;
+        const initials = politicianName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        
+        return `
         <div class="trade-card" data-trade-id="${trade._id}">
           <div class="trade-header">
             <div class="politician-info">
-              <h3>${trade.politician?.name || 'Unbekannt'}</h3>
-              <div class="politician-country">
-                <span>${getCountryFlag(trade.country)}</span>
-                ${trade.country?.toUpperCase() || 'N/A'}
+              <div class="politician-avatar-wrapper">
+                ${imageUrl ? 
+                  `<img src="${imageUrl}" alt="${politicianName}" class="politician-avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                   <div class="politician-avatar-fallback" style="display:none;">${initials}</div>` :
+                  `<div class="politician-avatar-fallback">${initials}</div>`
+                }
+              </div>
+              <div>
+                <h3>${politicianName}</h3>
+                <div class="politician-country">
+                  <span>${getCountryFlag(trade.country)}</span>
+                  ${trade.country?.toUpperCase() || 'N/A'}
+                </div>
               </div>
             </div>
             <span class="trade-type ${(trade.trade?.type || '').toLowerCase()}">${trade.trade?.type || 'N/A'}</span>
@@ -325,8 +339,8 @@ function renderTradesGrid(trades) {
           <div class="trade-date">
             📅 ${formatDate(trade.dates?.transaction)}
           </div>
-        </div>
-      `).join('')}
+        </div>`;
+      }).join('')}
     </div>
   `;
   

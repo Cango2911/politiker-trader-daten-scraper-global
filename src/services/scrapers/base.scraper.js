@@ -180,6 +180,7 @@ class BaseScraper {
         party: rawTrade.party || null,
         chamber: rawTrade.chamber || null,
         district: rawTrade.district || null,
+        imageUrl: rawTrade.politicianImageUrl || null,
       },
       trade: {
         type: this.normalizeTradeType(rawTrade.tradeType),

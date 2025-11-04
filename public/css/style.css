@@ -508,6 +508,41 @@ body {
   margin-bottom: var(--spacing-md);
 }
 
+.politician-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.politician-avatar-wrapper {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.politician-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--bg-tertiary);
+}
+
+.politician-avatar-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  border: 2px solid var(--bg-tertiary);
+}
+
 .politician-info h3 {
   font-size: 1.125rem;
   font-weight: 700;
