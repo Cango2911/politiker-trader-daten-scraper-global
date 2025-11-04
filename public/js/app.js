@@ -293,58 +293,75 @@ function renderTradesGrid(trades) {
   
   const html = `
     <div class="trades-grid">
-      ${trades.map(trade => {
-        const politicianName = trade.politician?.name || 'Unbekannt';
-        const imageUrl = trade.politician?.imageUrl;
-        const initials = politicianName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-        
-        return `
-        <div class="trade-card" data-trade-id="${trade._id}">
-          <div class="trade-header">
-            <div class="politician-info">
-              <div class="politician-avatar-wrapper">
-                ${imageUrl ? 
-                  `<img src="${imageUrl}" alt="${politicianName}" class="politician-avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                   <div class="politician-avatar-fallback" style="display:none;">${initials}</div>` :
-                  `<div class="politician-avatar-fallback">${initials}</div>`
-                }
-              </div>
-              <div>
-                <h3>${politicianName}</h3>
-                <div class="politician-country">
-                  <span>${getCountryFlag(trade.country)}</span>
-                  ${trade.country?.toUpperCase() || 'N/A'}
+      <table class="trades-modern-table">
+        <thead>
+          <tr>
+            <th>Politiker</th>
+            <th>Asset</th>
+            <th>Typ</th>
+            <th>Betrag</th>
+            <th>Datum</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${trades.map(trade => {
+            const politicianName = trade.politician?.name || 'Unbekannt';
+            const imageUrl = trade.politician?.imageUrl;
+            const initials = politicianName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            
+            return `
+            <tr class="trade-row" data-trade-id="${trade._id}">
+              <td class="politician-cell">
+                <div class="politician-info-compact">
+                  <div class="politician-avatar-wrapper">
+                    ${imageUrl ? 
+                      `<img src="${imageUrl}" alt="${politicianName}" class="politician-avatar" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\"politician-avatar-fallback\\">${initials}</div>';">` :
+                      `<div class="politician-avatar-fallback">${initials}</div>`
+                    }
+                  </div>
+                  <div class="politician-text">
+                    <div class="politician-name">${politicianName}</div>
+                    <div class="politician-meta">
+                      ${getCountryFlag(trade.country)} ${trade.country?.toUpperCase() || 'N/A'}${trade.politician?.party ? ' • ' + trade.politician.party : ''}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <span class="trade-type ${(trade.trade?.type || '').toLowerCase()}">${trade.trade?.type || 'N/A'}</span>
-          </div>
-          
-          <div class="stock-info">
-            <div class="ticker">${trade.trade?.ticker || 'N/A'}</div>
-            <div class="company-name">${trade.trade?.assetName || trade.politician?.party || 'Unbekannt'}</div>
-          </div>
-          
-          <div class="trade-details">
-            <div class="detail-item">
-              <span class="detail-label">Betrag</span>
-              <span class="detail-value amount">${formatAmount(trade.trade?.sizeMin)}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Größe</span>
-              <span class="detail-value">${trade.trade?.size || 'N/A'}</span>
-            </div>
-          </div>
-          
-          <div class="trade-date">
-            📅 ${formatDate(trade.dates?.transaction)}
-          </div>
-        </div>`;
-      }).join('')}
+              </td>
+              <td class="asset-cell">
+                <div class="asset-info">
+                  <div class="ticker-badge">${trade.trade?.ticker || 'N/A'}</div>
+                  <div class="asset-name">${trade.trade?.assetName || 'Unbekannt'}</div>
+                </div>
+              </td>
+              <td class="type-cell">
+                <span class="trade-type-badge ${(trade.trade?.type || '').toLowerCase()}">${trade.trade?.type || 'N/A'}</span>
+              </td>
+              <td class="amount-cell">
+                <div class="amount-info">
+                  <div class="amount-value">${formatAmount(trade.trade?.sizeMin)}</div>
+                  <div class="amount-range">${trade.trade?.size || 'N/A'}</div>
+                </div>
+              </td>
+              <td class="date-cell">${formatDate(trade.dates?.transaction)}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
     </div>
   `;
   
   container.innerHTML = html;
+  
+  // Event Listeners für Table Rows
+  setTimeout(() => {
+    document.querySelectorAll('.trade-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const tradeId = row.dataset.tradeId;
+        // Hier kann später ein Modal oder Detail-View geöffnet werden
+        console.log('Trade clicked:', tradeId);
+      });
+    });
+  }, 100);
 }
 
 function renderTradesTable(trades) {
