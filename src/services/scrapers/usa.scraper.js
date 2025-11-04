@@ -25,13 +25,43 @@ class UsaScraper extends BaseScraper {
       logger.info(`Scrape Seite ${page} von ${pages}`);
       
       const url = this.buildUrl(page, tradeSizes);
-      await this.navigateToUrl(url);
+      await this.navigateToUrl(url, { waitUntil: 'networkidle0', timeout: 30000 });
       
-      // Warte auf die Trades-Tabelle
-      const tableFound = await this.waitForSelector('.q-tr', { timeout: 10000 });
+      // Warte extra Zeit für JavaScript-Rendering
+      await this.page.waitForTimeout(5000);
+      
+      // Versuche mehrere Selektoren
+      const selectors = [
+        '.q-tr',
+        'tr.q-tr',
+        'div[class*="trade"]',
+        'table tbody tr',
+        '[class*="trade-row"]'
+      ];
+      
+      let tableFound = false;
+      for (const selector of selectors) {
+        tableFound = await this.waitForSelector(selector, { timeout: 5000 });
+        if (tableFound) {
+          logger.info(`Tabelle gefunden mit Selector: ${selector}`);
+          break;
+        }
+      }
       
       if (!tableFound) {
-        logger.warn(`Keine Trades-Tabelle auf Seite ${page} gefunden`);
+        logger.warn(`Keine Trades-Tabelle auf Seite ${page} gefunden - erstelle Screenshot`);
+        await this.takeScreenshot(`debug-usa-page-${page}-${Date.now()}.png`);
+        
+        // Logge verfügbare Klassen für Debugging
+        const availableClasses = await this.page.evaluate(() => {
+          const allElements = document.querySelectorAll('[class]');
+          const classes = new Set();
+          allElements.forEach(el => {
+            el.className.split(' ').forEach(c => c && classes.add(c));
+          });
+          return Array.from(classes).slice(0, 50); // Erste 50 Klassen
+        });
+        logger.info(`Verfügbare CSS-Klassen auf der Seite: ${availableClasses.join(', ')}`);
         break;
       }
       
@@ -43,7 +73,7 @@ class UsaScraper extends BaseScraper {
       
       // Warte zwischen Seiten
       if (page < pages) {
-        await this.page.waitForTimeout(2000);
+        await this.page.waitForTimeout(3000);
       }
     }
     
