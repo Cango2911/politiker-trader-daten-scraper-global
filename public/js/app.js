@@ -357,6 +357,7 @@ async function loadTrades() {
   try {
     const queryParams = new URLSearchParams({
       limit: 100,
+      sort: '-dates.transaction', // Neueste zuerst
       ...currentFilters
     });
     
@@ -364,7 +365,14 @@ async function loadTrades() {
     const data = await response.json();
     
     if (data.success && data.data && data.data.length > 0) {
-      renderCMCTable(data.data);
+      // Filtere Trades: Zeige zuerst Trades mit echten Werten (USA)
+      const tradesWithValues = data.data.filter(t => t.trade?.ticker && t.trade?.ticker !== 'N/A');
+      const tradesWithoutValues = data.data.filter(t => !t.trade?.ticker || t.trade?.ticker === 'N/A');
+      
+      // USA zuerst, dann andere
+      const sortedTrades = [...tradesWithValues, ...tradesWithoutValues];
+      
+      renderCMCTable(sortedTrades);
     } else {
       container.innerHTML = '<div class="error-state">Keine Trades gefunden</div>';
     }
