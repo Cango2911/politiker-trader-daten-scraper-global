@@ -1,552 +1,327 @@
 /**
- * Follow the Money - Frontend JavaScript
- * Verbindet sich mit der Capitol Trades API
+ * Follow the Money - Frontend App
+ * CoinMarketCap-Style Design
  */
 
-// Konfiguration
 const API_BASE_URL = window.location.origin;
-let currentPage = 1;
 let currentFilters = {};
-let currentView = 'grid';
+let allCountries = [];
 
-/**
- * Initialisierung
- */
+// ========================================
+// INITIALIZATION
+// ========================================
+
 document.addEventListener('DOMContentLoaded', () => {
-  initializeTheme();
-  initializeEventListeners();
-  checkAPIHealth();
-  loadCountries();
-  loadTrades();
-  loadGlobalStats();
+  initializeApp();
+  setupEventListeners();
 });
 
-/**
- * Theme Management
- */
-function initializeTheme() {
-  const savedTheme = localStorage.getItem('theme') || 'light';
-  document.documentElement.setAttribute('data-theme', savedTheme);
-  updateThemeIcon(savedTheme);
+async function initializeApp() {
+  await checkAPIStatus();
+  await loadSummaryStats();
+  await loadCountriesForFilter();
+  await loadTrades();
 }
 
-function toggleTheme() {
-  const currentTheme = document.documentElement.getAttribute('data-theme');
-  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-  document.documentElement.setAttribute('data-theme', newTheme);
-  localStorage.setItem('theme', newTheme);
-  updateThemeIcon(newTheme);
-}
-
-function updateThemeIcon(theme) {
-  const icon = document.querySelector('.theme-toggle .icon');
-  if (icon) {
-    icon.textContent = theme === 'light' ? '🌙' : '☀️';
-  }
-}
-
-/**
- * Event Listeners
- */
-function initializeEventListeners() {
+function setupEventListeners() {
   // Theme Toggle
   const themeToggle = document.getElementById('themeToggle');
   if (themeToggle) {
     themeToggle.addEventListener('click', toggleTheme);
   }
-
-  // Filter Apply
-  const applyFiltersBtn = document.getElementById('applyFilters');
-  if (applyFiltersBtn) {
-    applyFiltersBtn.addEventListener('click', applyFilters);
+  
+  // Filters
+  const applyBtn = document.getElementById('applyFilters');
+  const resetBtn = document.getElementById('resetFilters');
+  
+  if (applyBtn) {
+    applyBtn.addEventListener('click', applyFilters);
   }
-
-  // View Toggle
-  const viewToggleBtns = document.querySelectorAll('.toggle-btn');
-  viewToggleBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentView = btn.dataset.view;
-      viewToggleBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      loadTrades();
+  
+  if (resetBtn) {
+    resetBtn.addEventListener('click', resetFilters);
+  }
+  
+  // Enter key on search
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        applyFilters();
+      }
     });
-  });
-
-  // Modal Close
-  const modalOverlay = document.getElementById('modalOverlay');
-  const modalClose = document.getElementById('modalClose');
-  if (modalOverlay) modalOverlay.addEventListener('click', closeModal);
-  if (modalClose) modalClose.addEventListener('click', closeModal);
+  }
 }
 
-/**
- * API Health Check
- */
-async function checkAPIHealth() {
-  const statusDot = document.getElementById('statusDot');
-  const statusText = document.getElementById('statusText');
-  
+// ========================================
+// API STATUS
+// ========================================
+
+async function checkAPIStatus() {
   try {
     const response = await fetch(`${API_BASE_URL}/health`);
     const data = await response.json();
     
-    if (data.success && data.status === 'healthy') {
-      statusDot.classList.remove('offline');
-      statusText.textContent = 'API Online';
-    } else {
-      statusDot.classList.add('offline');
-      statusText.textContent = 'API Eingeschränkt';
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    
+    if (data.status === 'healthy' || data.success) {
+      if (statusDot) statusDot.style.background = '#16C784';
+      if (statusText) statusText.textContent = 'API';
     }
   } catch (error) {
-    statusDot.classList.add('offline');
-    statusText.textContent = 'API Offline';
+    console.error('API Status Check failed:', error);
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    if (statusDot) statusDot.style.background = '#EA3943';
+    if (statusText) statusText.textContent = 'Offline';
   }
 }
 
-/**
- * Globale Statistiken laden
- */
-async function loadGlobalStats() {
+// ========================================
+// SUMMARY STATS
+// ========================================
+
+async function loadSummaryStats() {
   try {
-    // Hole Trades-Count direkt von der Trades-API
-    const tradesResponse = await fetch(`${API_BASE_URL}/api/trades?limit=1`);
-    const tradesData = await tradesResponse.json();
+    const [tradesRes, countriesRes] = await Promise.all([
+      fetch(`${API_BASE_URL}/api/trades?limit=1`),
+      fetch(`${API_BASE_URL}/api/countries`)
+    ]);
     
-    // Hole Länder-Statistiken
-    const countriesResponse = await fetch(`${API_BASE_URL}/api/countries`);
-    const countriesData = await countriesResponse.json();
+    const tradesData = await tradesRes.json();
+    const countriesData = await countriesRes.json();
     
-    if (tradesData.success && countriesData.success) {
-      const totalTrades = tradesData.pagination?.total || 0;
-      const totalCountries = countriesData.total || 18;
-      
-      // Berechne eindeutige Politiker aus den Trades
-      const politiciansSet = new Set();
-      if (totalTrades > 0) {
-        const allTradesResponse = await fetch(`${API_BASE_URL}/api/trades?limit=1000`);
-        const allTradesData = await allTradesResponse.json();
-        allTradesData.data?.forEach(trade => {
-          if (trade.politician?.name) {
-            politiciansSet.add(`${trade.country}:${trade.politician.name}`);
-          }
-        });
+    const totalTrades = tradesData.pagination?.total || 0;
+    const totalCountries = countriesData.total || 18;
+    
+    // Count unique politicians
+    const allTradesRes = await fetch(`${API_BASE_URL}/api/trades?limit=1000`);
+    const allTrades = await allTradesRes.json();
+    const politicians = new Set();
+    allTrades.data?.forEach(trade => {
+      if (trade.politician?.name) {
+        politicians.add(`${trade.country}:${trade.politician.name}`);
       }
-      
-      document.getElementById('countryCount').textContent = totalCountries;
-      document.getElementById('politicianCount').textContent = formatNumber(politiciansSet.size);
-      document.getElementById('tradeCount').textContent = formatNumber(totalTrades);
-      document.getElementById('totalTrades').textContent = formatNumber(totalTrades);
-    }
+    });
+    
+    document.getElementById('summaryTrades').textContent = formatNumber(totalTrades);
+    document.getElementById('summaryPoliticians').textContent = formatNumber(politicians.size);
+    document.getElementById('summaryCountries').textContent = totalCountries;
+    document.getElementById('summaryNew').textContent = '+0'; // Placeholder
+    
   } catch (error) {
-    console.error('Fehler beim Laden der Statistiken:', error);
-    // Fallback-Werte
-    document.getElementById('countryCount').textContent = '18';
-    document.getElementById('politicianCount').textContent = '0';
-    document.getElementById('tradeCount').textContent = '0';
-    document.getElementById('totalTrades').textContent = '0';
+    console.error('Error loading summary stats:', error);
   }
 }
 
-/**
- * Länder laden
- */
-async function loadCountries() {
-  const grid = document.getElementById('countriesGrid');
-  
+// ========================================
+// COUNTRIES FOR FILTER
+// ========================================
+
+async function loadCountriesForFilter() {
   try {
     const response = await fetch(`${API_BASE_URL}/api/countries`);
     const data = await response.json();
     
     if (data.success && data.data) {
-      renderCountries(data.data);
-      populateCountryFilter(data.data);
-    } else {
-      grid.innerHTML = '<div class="error-message">Keine Länder gefunden</div>';
+      allCountries = data.data;
+      populateCountryFilter(allCountries);
     }
   } catch (error) {
-    console.error('Fehler beim Laden der Länder:', error);
-    grid.innerHTML = '<div class="error-message">Fehler beim Laden der Länder</div>';
+    console.error('Error loading countries:', error);
   }
-}
-
-async function renderCountries(countries) {
-  const grid = document.getElementById('countriesGrid');
-  
-  // Hole Trade-Counts für jedes Land
-  const countriesWithStats = await Promise.all(countries.map(async (country) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/trades?country=${country.code}&limit=1`);
-      const data = await response.json();
-      const tradeCount = data.pagination?.total || 0;
-      
-      // Zähle eindeutige Politiker
-      let politicianCount = 0;
-      if (tradeCount > 0) {
-        const allTradesResponse = await fetch(`${API_BASE_URL}/api/trades?country=${country.code}&limit=100`);
-        const allTradesData = await allTradesResponse.json();
-        const politicians = new Set();
-        allTradesData.data?.forEach(trade => {
-          if (trade.politician?.name) {
-            politicians.add(trade.politician.name);
-          }
-        });
-        politicianCount = politicians.size;
-      }
-      
-      return {
-        ...country,
-        tradeCount,
-        politicianCount,
-        scraperImplemented: tradeCount > 0
-      };
-    } catch (error) {
-      return { ...country, tradeCount: 0, politicianCount: 0, scraperImplemented: false };
-    }
-  }));
-  
-  const html = countriesWithStats.map(country => `
-    <div class="country-card" data-country-code="${country.code}">
-      <div class="country-header">
-        <span class="country-flag">${country.flag || '🌍'}</span>
-        <span class="country-status ${country.scraperImplemented ? 'active' : ''}">${country.scraperImplemented ? 'Aktiv' : 'Geplant'}</span>
-      </div>
-      <h3 class="country-name">${country.name}</h3>
-      <div class="country-stats">
-        <div class="country-stat">
-          <span>👥</span>
-          <strong>${country.politicianCount || 0}</strong>
-          Politiker
-        </div>
-        <div class="country-stat">
-          <span>💼</span>
-          <strong>${country.tradeCount || 0}</strong>
-          Trades
-        </div>
-      </div>
-    </div>
-  `).join('');
-  
-  // Event Listeners für Country Cards
-  setTimeout(() => {
-    document.querySelectorAll('.country-card').forEach(card => {
-      card.addEventListener('click', () => {
-        const countryCode = card.dataset.countryCode;
-        filterByCountry(countryCode);
-      });
-    });
-  }, 100);
-  
-  grid.innerHTML = html;
 }
 
 function populateCountryFilter(countries) {
   const select = document.getElementById('countryFilter');
   if (!select) return;
   
-  const options = countries.map(country => 
-    `<option value="${country.code}">${country.flag || '🌍'} ${country.name}</option>`
+  const options = countries.map(c => 
+    `<option value="${c.code}">${c.flag || '🌍'} ${c.name}</option>`
   ).join('');
   
   select.innerHTML = '<option value="">Alle Länder</option>' + options;
 }
 
-/**
- * Trades laden
- */
-async function loadTrades(page = 1) {
+// ========================================
+// LOAD TRADES
+// ========================================
+
+async function loadTrades() {
   const container = document.getElementById('tradesContainer');
-  container.innerHTML = '<div class="loading">Lade Trades</div>';
+  container.innerHTML = '<div class="loading-state">Lade Trades...</div>';
   
   try {
     const queryParams = new URLSearchParams({
-      page: page,
-      limit: 20,
+      limit: 100,
       ...currentFilters
     });
     
     const response = await fetch(`${API_BASE_URL}/api/trades?${queryParams}`);
     const data = await response.json();
     
-    if (data.success && data.data) {
-      if (currentView === 'grid') {
-        renderTradesGrid(data.data);
-      } else {
-        renderTradesTable(data.data);
-      }
-      renderPagination(data.pagination);
+    if (data.success && data.data && data.data.length > 0) {
+      renderCMCTable(data.data);
     } else {
-      container.innerHTML = '<div class="error-message">Keine Trades gefunden</div>';
+      container.innerHTML = '<div class="error-state">Keine Trades gefunden</div>';
     }
   } catch (error) {
-    console.error('Fehler beim Laden der Trades:', error);
-    container.innerHTML = '<div class="error-message">Fehler beim Laden der Trades</div>';
+    console.error('Error loading trades:', error);
+    container.innerHTML = '<div class="error-state">Fehler beim Laden der Trades</div>';
   }
 }
 
-function renderTradesGrid(trades) {
+// ========================================
+// RENDER CMC-STYLE TABLE
+// ========================================
+
+function renderCMCTable(trades) {
   const container = document.getElementById('tradesContainer');
   
-  if (!trades || trades.length === 0) {
-    container.innerHTML = '<div class="error-message">Keine Trades gefunden</div>';
-    return;
-  }
-  
   const html = `
-    <div class="trades-grid">
-      <table class="trades-modern-table">
-        <thead>
-          <tr>
-            <th>Politiker</th>
-            <th>Asset</th>
-            <th>Typ</th>
-            <th>Betrag</th>
-            <th>Datum</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${trades.map(trade => {
-            const politicianName = trade.politician?.name || 'Unbekannt';
-            const imageUrl = trade.politician?.imageUrl;
-            const initials = politicianName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-            
-            return `
-            <tr class="trade-row" data-trade-id="${trade._id}">
+    <table class="trades-cmc-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Politiker</th>
+          <th>Asset</th>
+          <th>Typ</th>
+          <th class="text-right">Betrag</th>
+          <th class="text-right">Datum</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${trades.map((trade, index) => {
+          const name = trade.politician?.name || 'Unbekannt';
+          const imageUrl = trade.politician?.imageUrl;
+          const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+          const country = trade.country || 'unknown';
+          const party = trade.politician?.party || '';
+          
+          return `
+            <tr class="trade-row-cmc" data-trade-id="${trade._id}">
+              <td class="rank-cell">${index + 1}</td>
               <td class="politician-cell">
-                <div class="politician-info-compact">
-                  <div class="politician-avatar-wrapper">
+                <div class="politician-row">
+                  <div class="avatar-small">
                     ${imageUrl ? 
-                      `<img src="${imageUrl}" alt="${politicianName}" class="politician-avatar" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\"politician-avatar-fallback\\">${initials}</div>';">` :
-                      `<div class="politician-avatar-fallback">${initials}</div>`
+                      `<img src="${imageUrl}" alt="${name}" onerror="this.style.display='none';this.parentElement.innerHTML='<div class=\\'avatar-fallback\\'>${initials}</div>'">` :
+                      `<div class="avatar-fallback">${initials}</div>`
                     }
                   </div>
-                  <div class="politician-text">
-                    <div class="politician-name">${politicianName}</div>
-                    <div class="politician-meta">
-                      ${getCountryFlag(trade.country)} ${trade.country?.toUpperCase() || 'N/A'}${trade.politician?.party ? ' • ' + trade.politician.party : ''}
+                  <div class="politician-details">
+                    <div class="politician-name-row">
+                      <span class="politician-name-text">${name}</span>
+                      <span class="country-flag-small">${getCountryFlag(country)}</span>
                     </div>
+                    <div class="politician-subtitle">${country.toUpperCase()}${party ? ' • ' + party : ''}</div>
                   </div>
                 </div>
               </td>
               <td class="asset-cell">
-                <div class="asset-info">
-                  <div class="ticker-badge">${trade.trade?.ticker || 'N/A'}</div>
-                  <div class="asset-name">${trade.trade?.assetName || 'Unbekannt'}</div>
+                <div class="asset-row">
+                  <div class="ticker-row">
+                    <span class="ticker-text">${trade.trade?.ticker || 'N/A'}</span>
+                  </div>
+                  <div class="asset-name-text">${trade.trade?.assetName || 'Unbekannt'}</div>
                 </div>
               </td>
               <td class="type-cell">
-                <span class="trade-type-badge ${(trade.trade?.type || '').toLowerCase()}">${trade.trade?.type || 'N/A'}</span>
+                <span class="type-badge ${(trade.trade?.type || '').toLowerCase()}">${formatTradeType(trade.trade?.type)}</span>
               </td>
-              <td class="amount-cell">
-                <div class="amount-info">
-                  <div class="amount-value">${formatAmount(trade.trade?.sizeMin)}</div>
-                  <div class="amount-range">${trade.trade?.size || 'N/A'}</div>
-                </div>
+              <td class="amount-cell-cmc text-right">
+                <div class="amount-main">${formatAmount(trade.trade?.sizeMin)}</div>
+                ${trade.trade?.size ? `<div class="amount-sub">${trade.trade.size}</div>` : ''}
               </td>
-              <td class="date-cell">${formatDate(trade.dates?.transaction)}</td>
-            </tr>`;
-          }).join('')}
-        </tbody>
-      </table>
-    </div>
+              <td class="date-cell-cmc text-right">${formatDate(trade.dates?.transaction)}</td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    </table>
   `;
   
   container.innerHTML = html;
   
-  // Event Listeners für Table Rows
+  // Add click listeners
   setTimeout(() => {
-    document.querySelectorAll('.trade-row').forEach(row => {
+    document.querySelectorAll('.trade-row-cmc').forEach(row => {
       row.addEventListener('click', () => {
         const tradeId = row.dataset.tradeId;
-        // Hier kann später ein Modal oder Detail-View geöffnet werden
         console.log('Trade clicked:', tradeId);
+        // Future: Open detail modal
       });
     });
   }, 100);
 }
 
-function renderTradesTable(trades) {
-  const container = document.getElementById('tradesContainer');
-  
-  if (!trades || trades.length === 0) {
-    container.innerHTML = '<div class="error-message">Keine Trades gefunden</div>';
-    return;
-  }
-  
-  const html = `
-    <div class="trades-table">
-      <table>
-        <thead>
-          <tr>
-            <th>Politiker</th>
-            <th>Land</th>
-            <th>Ticker</th>
-            <th>Typ</th>
-            <th>Betrag</th>
-            <th>Datum</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${trades.map(trade => `
-            <tr onclick='showTradeDetails(${JSON.stringify(trade).replace(/'/g, "&#39;")})'>
-              <td><strong>${trade.politicianName || 'Unbekannt'}</strong></td>
-              <td>${getCountryFlag(trade.country)} ${trade.country?.toUpperCase() || 'N/A'}</td>
-              <td><strong style="color: var(--accent-primary)">${trade.ticker || 'N/A'}</strong></td>
-              <td><span class="badge badge-${(trade.transactionType || '').toLowerCase() === 'buy' ? 'success' : 'danger'}">${trade.transactionType || trade.type || 'N/A'}</span></td>
-              <td><strong>${formatAmount(trade.amount || trade.estimatedValue)}</strong></td>
-              <td>${formatDate(trade.transactionDate || trade.disclosureDate)}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
-  
-  container.innerHTML = html;
-}
+// ========================================
+// FILTERS
+// ========================================
 
-/**
- * Pagination
- */
-function renderPagination(pagination) {
-  const container = document.getElementById('pagination');
-  if (!pagination || !container) return;
-  
-  const { currentPage, totalPages, hasNextPage, hasPreviousPage } = pagination;
-  
-  let html = '';
-  
-  // Previous Button
-  html += `<button class="page-btn" ${!hasPreviousPage ? 'disabled' : ''} onclick="loadTrades(${currentPage - 1})">← Zurück</button>`;
-  
-  // Page Numbers
-  for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
-    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="loadTrades(${i})">${i}</button>`;
-  }
-  
-  // Next Button
-  html += `<button class="page-btn" ${!hasNextPage ? 'disabled' : ''} onclick="loadTrades(${currentPage + 1})">Weiter →</button>`;
-  
-  container.innerHTML = html;
-}
-
-/**
- * Filter Functions
- */
 function applyFilters() {
-  const country = document.getElementById('countryFilter').value;
-  const search = document.getElementById('searchInput').value;
-  const tradeSize = document.getElementById('tradeSizeFilter').value;
+  const countryFilter = document.getElementById('countryFilter')?.value;
+  const typeFilter = document.getElementById('typeFilter')?.value;
+  const searchInput = document.getElementById('searchInput')?.value;
   
   currentFilters = {};
-  if (country) currentFilters.country = country;
-  if (search) currentFilters.politician = search;
-  if (tradeSize) currentFilters.tradeSize = tradeSize;
   
-  currentPage = 1;
-  loadTrades(1);
-}
-
-function filterByCountry(countryCode) {
-  document.getElementById('countryFilter').value = countryCode;
-  applyFilters();
-  document.querySelector('.trades-section').scrollIntoView({ behavior: 'smooth' });
-}
-
-/**
- * Trade Details Modal
- */
-function showTradeDetails(trade) {
-  const modal = document.getElementById('tradeModal');
-  const modalBody = document.getElementById('modalBody');
+  if (countryFilter) currentFilters.country = countryFilter;
+  if (typeFilter) currentFilters.type = typeFilter;
+  if (searchInput) currentFilters.search = searchInput;
   
-  const html = `
-    <h2 style="margin-bottom: 1.5rem; font-family: var(--font-display);">Trade Details</h2>
-    
-    <div style="display: grid; gap: 1.5rem;">
-      <div class="detail-section">
-        <h3 style="margin-bottom: 0.75rem; color: var(--text-secondary); font-size: 0.875rem; text-transform: uppercase;">Politiker</h3>
-        <p style="font-size: 1.25rem; font-weight: 700;">${trade.politicianName || 'Unbekannt'}</p>
-        <p style="color: var(--text-secondary);">${getCountryFlag(trade.country)} ${getCountryName(trade.country)}</p>
-      </div>
-      
-      <div class="detail-section">
-        <h3 style="margin-bottom: 0.75rem; color: var(--text-secondary); font-size: 0.875rem; text-transform: uppercase;">Aktie</h3>
-        <p style="font-size: 1.5rem; font-weight: 700; color: var(--accent-primary);">${trade.ticker || 'N/A'}</p>
-        <p style="color: var(--text-secondary);">${trade.assetDescription || trade.companyName || 'Unbekannt'}</p>
-      </div>
-      
-      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-        <div class="detail-section">
-          <h3 style="margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">Typ</h3>
-          <span class="trade-type ${(trade.transactionType || '').toLowerCase()}">${trade.transactionType || trade.type || 'N/A'}</span>
-        </div>
-        
-        <div class="detail-section">
-          <h3 style="margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">Betrag</h3>
-          <p style="font-size: 1.5rem; font-weight: 700; color: var(--accent-success);">${formatAmount(trade.amount || trade.estimatedValue)}</p>
-        </div>
-      </div>
-      
-      <div class="detail-section">
-        <h3 style="margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">Handelsgröße</h3>
-        <p style="font-weight: 600;">${trade.tradeSize || 'Nicht angegeben'}</p>
-      </div>
-      
-      <div class="detail-section">
-        <h3 style="margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">Datum</h3>
-        <p style="font-weight: 600;">📅 ${formatDate(trade.transactionDate || trade.disclosureDate)}</p>
-      </div>
-      
-      ${trade.reportedAt ? `
-        <div class="detail-section">
-          <h3 style="margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">Gemeldet am</h3>
-          <p style="font-weight: 600;">${formatDate(trade.reportedAt)}</p>
-        </div>
-      ` : ''}
-      
-      ${trade.sourceUrl ? `
-        <div class="detail-section">
-          <a href="${trade.sourceUrl}" target="_blank" class="btn-primary" style="display: inline-block; text-decoration: none; text-align: center;">
-            🔗 Quelle anzeigen
-          </a>
-        </div>
-      ` : ''}
-    </div>
-  `;
+  loadTrades();
+}
+
+function resetFilters() {
+  document.getElementById('countryFilter').value = '';
+  document.getElementById('typeFilter').value = '';
+  document.getElementById('searchInput').value = '';
   
-  modalBody.innerHTML = html;
-  modal.classList.add('active');
+  currentFilters = {};
+  loadTrades();
 }
 
-function closeModal() {
-  const modal = document.getElementById('tradeModal');
-  modal.classList.remove('active');
+// ========================================
+// THEME TOGGLE
+// ========================================
+
+function toggleTheme() {
+  document.body.classList.toggle('light-mode');
+  const icon = document.getElementById('themeIcon');
+  if (icon) {
+    icon.textContent = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+  }
+  
+  localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
 }
 
-/**
- * Utility Functions
- */
+// Load saved theme
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'light') {
+  document.body.classList.add('light-mode');
+  const icon = document.getElementById('themeIcon');
+  if (icon) icon.textContent = '☀️';
+}
+
+// ========================================
+// UTILITY FUNCTIONS
+// ========================================
+
 function formatNumber(num) {
   if (!num) return '0';
   return new Intl.NumberFormat('de-DE').format(num);
 }
 
 function formatAmount(amount) {
-  if (!amount) return 'N/A';
-  
-  if (typeof amount === 'string' && amount.includes('-')) {
-    return amount; // Bereits formatierter Bereich wie "$1,001 - $15,000"
-  }
-  
-  const num = parseFloat(amount);
-  if (isNaN(num)) return amount;
-  
-  if (num >= 1000000) {
-    return `$${(num / 1000000).toFixed(2)}M`;
-  } else if (num >= 1000) {
-    return `$${(num / 1000).toFixed(0)}K`;
-  }
-  return `$${num.toFixed(0)}`;
+  if (!amount || amount === 0) return 'N/A';
+  return new Intl.NumberFormat('de-DE', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount);
 }
 
 function formatDate(dateString) {
@@ -554,21 +329,44 @@ function formatDate(dateString) {
   
   try {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('de-DE', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }).format(date);
+    const now = new Date();
+    const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Heute';
+    if (diffDays === 1) return 'Gestern';
+    if (diffDays < 7) return `vor ${diffDays}d`;
+    
+    return date.toLocaleDateString('de-DE', { 
+      day: 'numeric', 
+      month: 'short',
+      year: 'numeric'
+    });
   } catch {
-    return dateString;
+    return 'N/A';
   }
 }
 
+function formatTradeType(type) {
+  if (!type) return 'N/A';
+  
+  const types = {
+    'purchase': 'BUY',
+    'sale': 'SELL',
+    'exchange': 'EXCHANGE',
+    'other': 'OTHER',
+    'disclosure': 'DISCLOSURE'
+  };
+  
+  return types[type.toLowerCase()] || type.toUpperCase();
+}
+
 function getCountryFlag(countryCode) {
+  if (!countryCode) return '🌍';
+  
   const flags = {
     'usa': '🇺🇸',
-    'germany': '🇩🇪',
     'uk': '🇬🇧',
+    'germany': '🇩🇪',
     'france': '🇫🇷',
     'italy': '🇮🇹',
     'spain': '🇪🇸',
@@ -576,49 +374,15 @@ function getCountryFlag(countryCode) {
     'china': '🇨🇳',
     'japan': '🇯🇵',
     'india': '🇮🇳',
-    'south-korea': '🇰🇷',
+    'southkorea': '🇰🇷',
     'indonesia': '🇮🇩',
     'nigeria': '🇳🇬',
-    'south-africa': '🇿🇦',
+    'southafrica': '🇿🇦',
     'egypt': '🇪🇬',
     'kenya': '🇰🇪',
     'ghana': '🇬🇭',
     'turkey': '🇹🇷'
   };
   
-  return flags[countryCode?.toLowerCase()] || '🌍';
+  return flags[countryCode.toLowerCase()] || '🌍';
 }
-
-function getCountryName(countryCode) {
-  const names = {
-    'usa': 'Vereinigte Staaten',
-    'germany': 'Deutschland',
-    'uk': 'Vereinigtes Königreich',
-    'france': 'Frankreich',
-    'italy': 'Italien',
-    'spain': 'Spanien',
-    'russia': 'Russland',
-    'china': 'China',
-    'japan': 'Japan',
-    'india': 'Indien',
-    'south-korea': 'Südkorea',
-    'indonesia': 'Indonesien',
-    'nigeria': 'Nigeria',
-    'south-africa': 'Südafrika',
-    'egypt': 'Ägypten',
-    'kenya': 'Kenia',
-    'ghana': 'Ghana',
-    'turkey': 'Türkei'
-  };
-  
-  return names[countryCode?.toLowerCase()] || countryCode;
-}
-
-/**
- * Auto-Refresh (alle 5 Minuten)
- */
-setInterval(() => {
-  checkAPIHealth();
-  loadGlobalStats();
-}, 300000); // 5 Minuten
-
