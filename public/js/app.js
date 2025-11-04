@@ -205,7 +205,7 @@ async function renderCountries(countries) {
   }));
   
   const html = countriesWithStats.map(country => `
-    <div class="country-card" onclick="filterByCountry('${country.code}')">
+    <div class="country-card" data-country-code="${country.code}">
       <div class="country-header">
         <span class="country-flag">${country.flag || '🌍'}</span>
         <span class="country-status ${country.scraperImplemented ? 'active' : ''}">${country.scraperImplemented ? 'Aktiv' : 'Geplant'}</span>
@@ -225,6 +225,16 @@ async function renderCountries(countries) {
       </div>
     </div>
   `).join('');
+  
+  // Event Listeners für Country Cards
+  setTimeout(() => {
+    document.querySelectorAll('.country-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const countryCode = card.dataset.countryCode;
+        filterByCountry(countryCode);
+      });
+    });
+  }, 100);
   
   grid.innerHTML = html;
 }
@@ -284,36 +294,36 @@ function renderTradesGrid(trades) {
   const html = `
     <div class="trades-grid">
       ${trades.map(trade => `
-        <div class="trade-card" onclick='showTradeDetails(${JSON.stringify(trade).replace(/'/g, "&#39;")})'>
+        <div class="trade-card" data-trade-id="${trade._id}">
           <div class="trade-header">
             <div class="politician-info">
-              <h3>${trade.politicianName || 'Unbekannt'}</h3>
+              <h3>${trade.politician?.name || 'Unbekannt'}</h3>
               <div class="politician-country">
                 <span>${getCountryFlag(trade.country)}</span>
                 ${trade.country?.toUpperCase() || 'N/A'}
               </div>
             </div>
-            <span class="trade-type ${(trade.transactionType || trade.type || '').toLowerCase()}">${trade.transactionType || trade.type || 'N/A'}</span>
+            <span class="trade-type ${(trade.trade?.type || '').toLowerCase()}">${trade.trade?.type || 'N/A'}</span>
           </div>
           
           <div class="stock-info">
-            <div class="ticker">${trade.ticker || 'N/A'}</div>
-            <div class="company-name">${trade.assetDescription || trade.companyName || 'Unbekannt'}</div>
+            <div class="ticker">${trade.trade?.ticker || 'N/A'}</div>
+            <div class="company-name">${trade.trade?.assetName || trade.politician?.party || 'Unbekannt'}</div>
           </div>
           
           <div class="trade-details">
             <div class="detail-item">
               <span class="detail-label">Betrag</span>
-              <span class="detail-value amount">${formatAmount(trade.amount || trade.estimatedValue)}</span>
+              <span class="detail-value amount">${formatAmount(trade.trade?.sizeMin)}</span>
             </div>
             <div class="detail-item">
               <span class="detail-label">Größe</span>
-              <span class="detail-value">${trade.tradeSize || 'N/A'}</span>
+              <span class="detail-value">${trade.trade?.size || 'N/A'}</span>
             </div>
           </div>
           
           <div class="trade-date">
-            📅 ${formatDate(trade.transactionDate || trade.disclosureDate)}
+            📅 ${formatDate(trade.dates?.transaction)}
           </div>
         </div>
       `).join('')}
