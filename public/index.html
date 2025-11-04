@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Follow the Money - Verfolgen Sie die Investitionen von Politikern aus 18 Ländern weltweit">
+    <title>Follow the Money 💰 | Politiker Trading Daten</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>💰 <span class="gradient-text">Follow the Money</span></h1>
+                    <p class="tagline">Transparenz bei Politiker-Investitionen weltweit</p>
+                </div>
+                <div class="header-actions">
+                    <button class="theme-toggle" id="themeToggle" aria-label="Dark Mode Toggle">
+                        <span class="icon">🌙</span>
+                    </button>
+                    <div class="api-status">
+                        <span class="status-dot" id="statusDot"></span>
+                        <span id="statusText">Verbinde...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h2 class="hero-title">Wie investieren Ihre <span class="highlight">Volksvertreter</span>?</h2>
+                <p class="hero-subtitle">Durchsuchen Sie über <span class="stat-highlight" id="totalTrades">...</span> Trades von Politikern aus <span class="stat-highlight">18 Ländern</span> weltweit</p>
+                <div class="hero-stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="countryCount">...</div>
+                        <div class="stat-label">Länder</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="politicianCount">...</div>
+                        <div class="stat-label">Politiker</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="tradeCount">...</div>
+                        <div class="stat-label">Trades</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filter Section -->
+    <section class="filters">
+        <div class="container">
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label for="countryFilter">🌍 Land</label>
+                    <select id="countryFilter" class="filter-select">
+                        <option value="">Alle Länder</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="searchInput">🔍 Suche</label>
+                    <input type="text" id="searchInput" class="filter-input" placeholder="Politiker oder Ticker suchen...">
+                </div>
+                <div class="filter-group">
+                    <label for="tradeSizeFilter">💵 Handelsgröße</label>
+                    <select id="tradeSizeFilter" class="filter-select">
+                        <option value="">Alle Größen</option>
+                        <option value="1-10k">$1K - $10K</option>
+                        <option value="10k-50k">$10K - $50K</option>
+                        <option value="50k-100k">$50K - $100K</option>
+                        <option value="100k-500k">$100K - $500K</option>
+                        <option value="500k+">$500K+</option>
+                    </select>
+                </div>
+                <button class="btn-primary" id="applyFilters">Filtern</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Countries Grid -->
+    <section class="countries-section">
+        <div class="container">
+            <h2 class="section-title">📊 Länder-Übersicht</h2>
+            <div class="countries-grid" id="countriesGrid">
+                <div class="loading">Lade Länder...</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recent Trades -->
+    <section class="trades-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">🔥 Aktuelle Trades</h2>
+                <div class="view-toggle">
+                    <button class="toggle-btn active" data-view="grid">Grid</button>
+                    <button class="toggle-btn" data-view="table">Tabelle</button>
+                </div>
+            </div>
+            <div id="tradesContainer">
+                <div class="loading">Lade Trades...</div>
+            </div>
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Follow the Money</h3>
+                    <p>Transparenz in der Politik durch Daten.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Datenquellen</h4>
+                    <ul>
+                        <li>🇺🇸 Capitol Trades</li>
+                        <li>🇬🇧 UK Parliament Register</li>
+                        <li>🇷🇺 State Duma & Declarator</li>
+                        <li>+ 15 weitere Länder</li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>API</h4>
+                    <ul>
+                        <li><a href="/docs" target="_blank">Dokumentation</a></li>
+                        <li><a href="/health" target="_blank">Status</a></li>
+                        <li><a href="https://github.com" target="_blank">GitHub</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Follow the Money. Alle Daten sind öffentlich verfügbar.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Trade Detail Modal -->
+    <div class="modal" id="tradeModal">
+        <div class="modal-overlay" id="modalOverlay"></div>
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">&times;</button>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
+

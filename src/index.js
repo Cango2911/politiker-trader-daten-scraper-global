@@ -36,6 +36,10 @@ app.use(express.urlencoded({ extended: true }));
 // Request ID Tracking
 app.use(requestIdMiddleware);
 
+// Static Files (Frontend)
+const path = require('path');
+app.use(express.static(path.join(__dirname, '../public')));
+
 // Rate Limiting
 app.use('/api/', apiLimiter);
 
