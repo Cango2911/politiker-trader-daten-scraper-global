@@ -5,9 +5,39 @@
  * Führt alle 6 Stunden Scraping für aktivierte Länder durch
  */
 
+const mongoose = require('mongoose');
 const ScraperService = require('../services/scraper.service');
 const logger = require('../utils/logger');
 const config = require('../config/app.config');
+
+/**
+ * Verbinde mit MongoDB
+ */
+async function connectDatabase() {
+  try {
+    await mongoose.connect(config.database.uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    logger.info('✅ MongoDB verbunden für Auto-Scraper');
+    return true;
+  } catch (error) {
+    logger.error('❌ MongoDB Verbindung fehlgeschlagen:', error);
+    return false;
+  }
+}
+
+/**
+ * Trenne MongoDB-Verbindung
+ */
+async function disconnectDatabase() {
+  try {
+    await mongoose.connection.close();
+    logger.info('✅ MongoDB Verbindung geschlossen');
+  } catch (error) {
+    logger.error('❌ Fehler beim Schließen der MongoDB-Verbindung:', error);
+  }
+}
 
 // Konfiguration
 const SCRAPING_CONFIG = {
@@ -77,16 +107,30 @@ async function runAutoScraping() {
 
 // Wenn direkt ausgeführt
 if (require.main === module) {
-  runAutoScraping()
-    .then(() => {
+  (async () => {
+    try {
+      // Verbinde mit MongoDB
+      const dbConnected = await connectDatabase();
+      if (!dbConnected) {
+        logger.error('💥 Konnte nicht mit MongoDB verbinden');
+        process.exit(1);
+      }
+      
+      // Führe Scraping aus
+      await runAutoScraping();
+      
+      // Trenne Verbindung
+      await disconnectDatabase();
+      
       logger.info('✨ Auto-Scraping erfolgreich abgeschlossen');
       process.exit(0);
-    })
-    .catch((error) => {
+    } catch (error) {
       logger.error('💥 Auto-Scraping fehlgeschlagen:', error);
+      await disconnectDatabase();
       process.exit(1);
-    });
+    }
+  })();
 }
 
-module.exports = { runAutoScraping };
+module.exports = { runAutoScraping, connectDatabase, disconnectDatabase };
 
