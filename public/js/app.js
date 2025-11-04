@@ -108,17 +108,42 @@ async function checkAPIHealth() {
  */
 async function loadGlobalStats() {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/stats`);
-    const data = await response.json();
+    // Hole Trades-Count direkt von der Trades-API
+    const tradesResponse = await fetch(`${API_BASE_URL}/api/trades?limit=1`);
+    const tradesData = await tradesResponse.json();
     
-    if (data.success) {
-      document.getElementById('countryCount').textContent = data.data.totalCountries || '18';
-      document.getElementById('politicianCount').textContent = formatNumber(data.data.totalPoliticians || 0);
-      document.getElementById('tradeCount').textContent = formatNumber(data.data.totalTrades || 0);
-      document.getElementById('totalTrades').textContent = formatNumber(data.data.totalTrades || 0);
+    // Hole Länder-Statistiken
+    const countriesResponse = await fetch(`${API_BASE_URL}/api/countries`);
+    const countriesData = await countriesResponse.json();
+    
+    if (tradesData.success && countriesData.success) {
+      const totalTrades = tradesData.pagination?.total || 0;
+      const totalCountries = countriesData.total || 18;
+      
+      // Berechne eindeutige Politiker aus den Trades
+      const politiciansSet = new Set();
+      if (totalTrades > 0) {
+        const allTradesResponse = await fetch(`${API_BASE_URL}/api/trades?limit=1000`);
+        const allTradesData = await allTradesResponse.json();
+        allTradesData.data?.forEach(trade => {
+          if (trade.politician?.name) {
+            politiciansSet.add(`${trade.country}:${trade.politician.name}`);
+          }
+        });
+      }
+      
+      document.getElementById('countryCount').textContent = totalCountries;
+      document.getElementById('politicianCount').textContent = formatNumber(politiciansSet.size);
+      document.getElementById('tradeCount').textContent = formatNumber(totalTrades);
+      document.getElementById('totalTrades').textContent = formatNumber(totalTrades);
     }
   } catch (error) {
     console.error('Fehler beim Laden der Statistiken:', error);
+    // Fallback-Werte
+    document.getElementById('countryCount').textContent = '18';
+    document.getElementById('politicianCount').textContent = '0';
+    document.getElementById('tradeCount').textContent = '0';
+    document.getElementById('totalTrades').textContent = '0';
   }
 }
 
@@ -144,14 +169,46 @@ async function loadCountries() {
   }
 }
 
-function renderCountries(countries) {
+async function renderCountries(countries) {
   const grid = document.getElementById('countriesGrid');
   
-  const html = countries.map(country => `
+  // Hole Trade-Counts für jedes Land
+  const countriesWithStats = await Promise.all(countries.map(async (country) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/trades?country=${country.code}&limit=1`);
+      const data = await response.json();
+      const tradeCount = data.pagination?.total || 0;
+      
+      // Zähle eindeutige Politiker
+      let politicianCount = 0;
+      if (tradeCount > 0) {
+        const allTradesResponse = await fetch(`${API_BASE_URL}/api/trades?country=${country.code}&limit=100`);
+        const allTradesData = await allTradesResponse.json();
+        const politicians = new Set();
+        allTradesData.data?.forEach(trade => {
+          if (trade.politician?.name) {
+            politicians.add(trade.politician.name);
+          }
+        });
+        politicianCount = politicians.size;
+      }
+      
+      return {
+        ...country,
+        tradeCount,
+        politicianCount,
+        scraperImplemented: tradeCount > 0
+      };
+    } catch (error) {
+      return { ...country, tradeCount: 0, politicianCount: 0, scraperImplemented: false };
+    }
+  }));
+  
+  const html = countriesWithStats.map(country => `
     <div class="country-card" onclick="filterByCountry('${country.code}')">
       <div class="country-header">
         <span class="country-flag">${country.flag || '🌍'}</span>
-        <span class="country-status">${country.scraperImplemented ? 'Aktiv' : 'Geplant'}</span>
+        <span class="country-status ${country.scraperImplemented ? 'active' : ''}">${country.scraperImplemented ? 'Aktiv' : 'Geplant'}</span>
       </div>
       <h3 class="country-name">${country.name}</h3>
       <div class="country-stats">
