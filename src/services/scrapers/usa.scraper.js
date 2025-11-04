@@ -269,20 +269,41 @@ class UsaScraper extends BaseScraper {
    * Parst US-Datumsformat (MM/DD/YYYY)
    */
   parseDate(dateString) {
-    if (!dateString) return null;
+    if (!dateString) {
+      // Wenn kein Datum vorhanden ist, verwende aktuelles Datum
+      // (besser als null, um Validierungsfehler zu vermeiden)
+      logger.warn('Kein Datum gefunden, verwende aktuelles Datum als Fallback');
+      return new Date();
+    }
     
     try {
-      // US-Format: MM/DD/YYYY
-      const match = dateString.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+      // US-Format: MM/DD/YYYY oder M/D/YYYY
+      const match = dateString.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
       if (match) {
         const [_, month, day, year] = match;
-        return new Date(`${year}-${month}-${day}`);
+        const date = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+        
+        // Validiere, ob das Datum gültig ist
+        if (isNaN(date.getTime())) {
+          logger.warn(`Ungültiges Datum: ${dateString}, verwende aktuelles Datum`);
+          return new Date();
+        }
+        
+        return date;
       }
       
       // Fallback auf Standard-Parsing
-      return super.parseDate(dateString);
+      const fallbackDate = super.parseDate(dateString);
+      if (fallbackDate && !isNaN(fallbackDate.getTime())) {
+        return fallbackDate;
+      }
+      
+      // Letzter Fallback: aktuelles Datum
+      logger.warn(`Konnte Datum nicht parsen: ${dateString}, verwende aktuelles Datum`);
+      return new Date();
     } catch (error) {
-      return null;
+      logger.error(`Fehler beim Parsen des Datums ${dateString}:`, error);
+      return new Date();
     }
   }
 }
