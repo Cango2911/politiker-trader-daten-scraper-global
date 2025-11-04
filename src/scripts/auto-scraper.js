@@ -5,6 +5,10 @@
  * Führt alle 6 Stunden Scraping für aktivierte Länder durch
  */
 
+// Lade Umgebungsvariablen aus .env
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../../.env') });
+
 const mongoose = require('mongoose');
 const ScraperService = require('../services/scraper.service');
 const logger = require('../utils/logger');
