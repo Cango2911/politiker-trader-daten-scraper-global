@@ -1,6 +1,6 @@
 /**
- * Indien Scraper
- * Scraped Daten vom Lok Sabha
+ * India Lok Sabha Scraper
+ * Template - Wird später implementiert
  */
 const BaseScraper = require('./base.scraper');
 const logger = require('../../utils/logger');
@@ -12,25 +12,9 @@ class IndiaScraper extends BaseScraper {
   }
 
   async scrape(options = {}) {
-    logger.info('Starte Indien Scraping (Lok Sabha)');
-    
-    const allTrades = [];
-    
-    try {
-      await this.navigateToUrl(this.baseUrl);
-      
-      logger.warn('Indien-Scraper benötigt länderspezifische Implementierung');
-      
-      logger.info(`Indien Scraping abgeschlossen. ${allTrades.length} Einträge`);
-      
-    } catch (error) {
-      logger.error('Indien Scraping fehlgeschlagen:', error);
-      throw error;
-    }
-    
-    return allTrades.map(trade => this.normalizeTrade(trade));
+    logger.info('India Scraper - Noch nicht vollständig implementiert');
+    return []; // Wird später implementiert
   }
 }
 
 module.exports = IndiaScraper;
-

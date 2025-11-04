@@ -1,6 +1,6 @@
 /**
- * Japan Scraper
- * Scraped Daten vom House of Representatives
+ * Japan House of Representatives Scraper
+ * Template - Wird später implementiert
  */
 const BaseScraper = require('./base.scraper');
 const logger = require('../../utils/logger');
@@ -8,29 +8,13 @@ const logger = require('../../utils/logger');
 class JapanScraper extends BaseScraper {
   constructor(countryConfig) {
     super(countryConfig);
-    this.baseUrl = 'https://www.shugiin.go.jp/internet/index.nsf/html/index.htm';
+    this.baseUrl = 'https://www.shugiin.go.jp/';
   }
 
   async scrape(options = {}) {
-    logger.info('Starte Japan Scraping (Diet)');
-    
-    const allTrades = [];
-    
-    try {
-      await this.navigateToUrl(this.baseUrl);
-      
-      logger.warn('Japan-Scraper benötigt länderspezifische Implementierung');
-      
-      logger.info(`Japan Scraping abgeschlossen. ${allTrades.length} Einträge`);
-      
-    } catch (error) {
-      logger.error('Japan Scraping fehlgeschlagen:', error);
-      throw error;
-    }
-    
-    return allTrades.map(trade => this.normalizeTrade(trade));
+    logger.info('Japan Scraper - Noch nicht vollständig implementiert');
+    return []; // Wird später implementiert
   }
 }
 
 module.exports = JapanScraper;
-

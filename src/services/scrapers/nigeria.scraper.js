@@ -1,6 +1,6 @@
 /**
- * Nigeria Scraper
- * Scraped Daten von der National Assembly
+ * Nigeria National Assembly Scraper
+ * Template - Wird später implementiert
  */
 const BaseScraper = require('./base.scraper');
 const logger = require('../../utils/logger');
@@ -12,25 +12,9 @@ class NigeriaScraper extends BaseScraper {
   }
 
   async scrape(options = {}) {
-    logger.info('Starte Nigeria Scraping (National Assembly)');
-    
-    const allTrades = [];
-    
-    try {
-      await this.navigateToUrl(this.baseUrl);
-      
-      logger.warn('Nigeria-Scraper benötigt länderspezifische Implementierung');
-      
-      logger.info(`Nigeria Scraping abgeschlossen. ${allTrades.length} Einträge`);
-      
-    } catch (error) {
-      logger.error('Nigeria Scraping fehlgeschlagen:', error);
-      throw error;
-    }
-    
-    return allTrades.map(trade => this.normalizeTrade(trade));
+    logger.info('Nigeria Scraper - Noch nicht vollständig implementiert');
+    return []; // Wird später implementiert
   }
 }
 
 module.exports = NigeriaScraper;
-

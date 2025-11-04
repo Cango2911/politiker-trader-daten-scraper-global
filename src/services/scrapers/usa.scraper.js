@@ -156,9 +156,28 @@ class UsaScraper extends BaseScraper {
             
             // Trade-Typ (kaufen/verkaufen)
             let tradeType = '';
-            const tradeTypeMatch = fullText.match(/\b(Purchase|Sale|Sold|Bought|Buy|Sell)\b/i);
-            if (tradeTypeMatch) {
-              tradeType = tradeTypeMatch[1];
+            // Suche nach Trade-Type-Indikatoren
+            const tradeTypePatterns = [
+              { pattern: /\b(Purchase|Bought|Buy|Buying)\b/i, type: 'Purchase' },
+              { pattern: /\b(Sale|Sold|Sell|Selling)\b/i, type: 'Sale' },
+              { pattern: /\b(Exchange|Swap)\b/i, type: 'Exchange' }
+            ];
+            
+            for (const { pattern, type } of tradeTypePatterns) {
+              if (fullText.match(pattern)) {
+                tradeType = type;
+                break;
+              }
+            }
+            
+            // Versuche aus CSS-Klassen zu ermitteln
+            if (!tradeType) {
+              const classList = row.className || '';
+              if (classList.includes('purchase') || classList.includes('buy')) {
+                tradeType = 'Purchase';
+              } else if (classList.includes('sale') || classList.includes('sell')) {
+                tradeType = 'Sale';
+              }
             }
             
             // Ticker-Symbol
@@ -216,9 +235,31 @@ class UsaScraper extends BaseScraper {
             
             // Transaktionsdatum (MM/DD/YYYY Format)
             let transactionDate = '';
-            const dateMatch = fullText.match(/\b(\d{1,2}\/\d{1,2}\/\d{4})\b/);
-            if (dateMatch) {
-              transactionDate = dateMatch[1];
+            // Suche nach allen Datumsformaten
+            const datePatterns = [
+              /\b(\d{1,2}\/\d{1,2}\/\d{4})\b/,  // MM/DD/YYYY
+              /\b(\d{4}-\d{2}-\d{2})\b/,        // YYYY-MM-DD
+              /\b([A-Za-z]{3}\s+\d{1,2},\s+\d{4})\b/  // Nov 4, 2025
+            ];
+            
+            for (const pattern of datePatterns) {
+              const match = fullText.match(pattern);
+              if (match) {
+                transactionDate = match[1];
+                break;
+              }
+            }
+            
+            // Versuche Datum aus spezifischen Elementen zu extrahieren
+            if (!transactionDate) {
+              const dateElements = row.querySelectorAll('[class*="date"], time, [datetime]');
+              for (const el of dateElements) {
+                const text = el.textContent?.trim() || el.getAttribute('datetime') || '';
+                if (text && text.match(/\d{1,2}\/\d{1,2}\/\d{4}/)) {
+                  transactionDate = text;
+                  break;
+                }
+              }
             }
             
             // Source URL

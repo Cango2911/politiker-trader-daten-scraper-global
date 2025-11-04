@@ -1,6 +1,6 @@
 /**
- * Ägypten Scraper
- * Scraped Daten vom House of Representatives
+ * Egypt Parliament Scraper
+ * Template - Wird später implementiert
  */
 const BaseScraper = require('./base.scraper');
 const logger = require('../../utils/logger');
@@ -12,25 +12,9 @@ class EgyptScraper extends BaseScraper {
   }
 
   async scrape(options = {}) {
-    logger.info('Starte Ägypten Scraping (Parliament)');
-    
-    const allTrades = [];
-    
-    try {
-      await this.navigateToUrl(this.baseUrl);
-      
-      logger.warn('Ägypten-Scraper benötigt länderspezifische Implementierung');
-      
-      logger.info(`Ägypten Scraping abgeschlossen. ${allTrades.length} Einträge`);
-      
-    } catch (error) {
-      logger.error('Ägypten Scraping fehlgeschlagen:', error);
-      throw error;
-    }
-    
-    return allTrades.map(trade => this.normalizeTrade(trade));
+    logger.info('Egypt Scraper - Noch nicht vollständig implementiert');
+    return []; // Wird später implementiert
   }
 }
 
 module.exports = EgyptScraper;
-

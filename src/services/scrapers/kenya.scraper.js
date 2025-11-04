@@ -1,6 +1,6 @@
 /**
- * Kenia Scraper
- * Scraped Daten vom Parliament of Kenya
+ * Kenya Parliament Scraper
+ * Template - Wird später implementiert
  */
 const BaseScraper = require('./base.scraper');
 const logger = require('../../utils/logger');
@@ -12,25 +12,9 @@ class KenyaScraper extends BaseScraper {
   }
 
   async scrape(options = {}) {
-    logger.info('Starte Kenia Scraping (Parliament)');
-    
-    const allTrades = [];
-    
-    try {
-      await this.navigateToUrl(this.baseUrl);
-      
-      logger.warn('Kenia-Scraper benötigt länderspezifische Implementierung');
-      
-      logger.info(`Kenia Scraping abgeschlossen. ${allTrades.length} Einträge`);
-      
-    } catch (error) {
-      logger.error('Kenia Scraping fehlgeschlagen:', error);
-      throw error;
-    }
-    
-    return allTrades.map(trade => this.normalizeTrade(trade));
+    logger.info('Kenya Scraper - Noch nicht vollständig implementiert');
+    return []; // Wird später implementiert
   }
 }
 
 module.exports = KenyaScraper;
-

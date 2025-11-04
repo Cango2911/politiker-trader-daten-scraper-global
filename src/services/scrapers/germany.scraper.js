@@ -1,6 +1,6 @@
 /**
- * Deutschland Scraper
- * Scraped Daten von Bundestag Abgeordneten-Nebeneinkünften und Beteiligungen
+ * Deutschland Bundestag Scraper
+ * Scraped Daten von Bundestag Abgeordneten
  */
 const BaseScraper = require('./base.scraper');
 const logger = require('../../utils/logger');
@@ -12,90 +12,121 @@ class GermanyScraper extends BaseScraper {
   }
 
   /**
-   * Scraped Trades/Finanz-Offenlegungen von deutschen Politikern
+   * Scraped Daten von Bundestag
    */
   async scrape(options = {}) {
     const { pages = 1 } = options;
     
-    logger.info(`Starte Deutschland Scraping (Bundestag) - ${pages} Seite(n)`);
+    logger.info(`Starte Deutschland Scraping - ${pages} Seite(n)`);
     
     const allTrades = [];
     
     try {
-      await this.navigateToUrl(this.baseUrl);
-      await this.handleCookieConsent();
+      const url = this.baseUrl;
+      await this.navigateToUrl(url, { waitUntil: 'networkidle0', timeout: 30000 });
       
-      // HINWEIS: Die deutsche Regierung hat keine zentrale Trading-Disclosure-Seite wie die USA
-      // Daten müssen aus verschiedenen Quellen kombiniert werden:
-      // 1. Bundestagswebsite für Abgeordnete
-      // 2. Nebeneinkünfte-Register
-      // 3. Beteiligungsregister
+      // Warte auf Seite zu laden
+      await this.page.waitForTimeout(5000);
       
-      // Dieser Scraper bietet ein Framework, das angepasst werden muss
-      logger.warn('Deutschland-Scraper benötigt länderspezifische Anpassungen für die genaue Datenquelle');
+      // Extrahiere Abgeordneten-Daten
+      const abgeordnete = await this.page.evaluate(() => {
+        const selectors = [
+          'a[href*="/abgeordnete/"]',
+          '.bt-teaser-person',
+          '[class*="abgeordnete"]',
+          'article',
+          '.person'
+        ];
+        
+        let elements = [];
+        for (const selector of selectors) {
+          elements = Array.from(document.querySelectorAll(selector));
+          if (elements.length > 0) {
+            console.log(`Found ${elements.length} elements with selector: ${selector}`);
+            break;
+          }
+        }
+        
+        return elements.slice(0, 50).map((element, index) => {
+          try {
+            const fullText = element.textContent || '';
+            
+            // Name extrahieren
+            let name = '';
+            const nameElement = element.querySelector('h3, h2, .name, strong, a');
+            if (nameElement) {
+              name = nameElement.textContent.trim();
+            } else if (fullText.length > 0 && fullText.length < 100) {
+              // Wenn kein spezifisches Element, nehme kurzen Text
+              name = fullText.split('\n')[0].trim();
+            }
+            
+            // Partei extrahieren
+            let party = '';
+            const partyMatch = fullText.match(/(CDU|CSU|SPD|FDP|GRÜNE|DIE LINKE|AfD)/i);
+            if (partyMatch) {
+              party = partyMatch[1];
+            }
+            
+            return {
+              politicianName: name,
+              party,
+              tradeType: 'Disclosure',
+              ticker: 'N/A',
+              assetName: 'Nebentätigkeiten/Vermögensangaben',
+              size: null,
+              transactionDate: new Date().toISOString(),
+              sourceUrl: window.location.href,
+              assetType: 'other',
+              chamber: 'Bundestag',
+              district: null,
+            };
+          } catch (error) {
+            console.error('Fehler beim Parsen eines Abgeordneten:', error);
+            return null;
+          }
+        }).filter(item => item && item.politicianName && item.politicianName.length > 3);
+      });
       
-      // Beispiel-Implementierung: Extrahiere Abgeordnetenliste
-      const politicians = await this.extractPoliticians();
-      
-      // Für jeden Politiker würden wir dann separate Seiten für Offenlegungen aufrufen
-      // Dies ist ein Platzhalter für die tatsächliche Implementierung
-      
-      logger.info(`Deutschland Scraping abgeschlossen. ${allTrades.length} Einträge gefunden`);
+      allTrades.push(...abgeordnete);
+      logger.info(`Deutschland Scraping abgeschlossen. ${allTrades.length} Einträge insgesamt`);
       
     } catch (error) {
-      logger.error('Deutschland Scraping fehlgeschlagen:', error);
-      throw error;
+      logger.error('Fehler beim Deutschland Scraping:', error);
     }
     
     return allTrades.map(trade => this.normalizeTrade(trade));
   }
 
   /**
-   * Extrahiert Liste der Politiker
+   * Parst deutsches Datumsformat (DD.MM.YYYY)
    */
-  async extractPoliticians() {
+  parseDate(dateString) {
+    if (!dateString) {
+      return new Date();
+    }
+    
     try {
-      // Platzhalter - muss an tatsächliche Seitenstruktur angepasst werden
-      const politicians = await this.page.evaluate(() => {
-        const elements = Array.from(document.querySelectorAll('[data-politician]') || []);
-        return elements.map(el => ({
-          name: el.textContent.trim(),
-          party: el.getAttribute('data-party'),
-          // Weitere Felder basierend auf tatsächlicher Seitenstruktur
-        }));
-      });
+      // Deutsches Format: DD.MM.YYYY
+      const match = dateString.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+      if (match) {
+        const [_, day, month, year] = match;
+        const date = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+        
+        if (isNaN(date.getTime())) {
+          logger.warn(`Ungültiges deutsches Datum: ${dateString}, verwende aktuelles Datum`);
+          return new Date();
+        }
+        
+        return date;
+      }
       
-      return politicians;
+      return new Date();
     } catch (error) {
-      logger.error('Fehler beim Extrahieren der Politikerliste:', error);
-      return [];
+      logger.error(`Fehler beim Parsen des deutschen Datums ${dateString}:`, error);
+      return new Date();
     }
   }
-
-  /**
-   * HINWEIS für zukünftige Entwicklung:
-   * 
-   * Deutschland hat ein dezentrales System für Finanzoffenlegungen:
-   * 
-   * 1. Veröffentlichungspflichtige Nebeneinkünfte (§ 44a AbgG):
-   *    - Müssen in 3 Stufen angegeben werden
-   *    - Veröffentlicht auf Bundestagswebsite
-   * 
-   * 2. Beteiligungen an Unternehmen:
-   *    - Müssen offengelegt werden
-   *    - Separate Dokumente pro Abgeordneter
-   * 
-   * 3. Mögliche Datenquellen:
-   *    - https://www.bundestag.de/parlament/plenum/abstimmung/liste
-   *    - Individuelle Abgeordnetenprofile
-   *    - PDF-Dokumente mit Offenlegungen
-   * 
-   * Diese Implementierung müsste erweitert werden um:
-   * - PDF-Parsing für Offenlegungsdokumente
-   * - Navigation durch Abgeordnetenprofile
-   * - Extraktion aus verschiedenen Dokumentformaten
-   */
 }
 
 module.exports = GermanyScraper;
-

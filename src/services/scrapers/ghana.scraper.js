@@ -1,6 +1,6 @@
 /**
- * Ghana Scraper
- * Scraped Daten vom Parliament of Ghana
+ * Ghana Parliament Scraper
+ * Template - Wird später implementiert
  */
 const BaseScraper = require('./base.scraper');
 const logger = require('../../utils/logger');
@@ -12,25 +12,9 @@ class GhanaScraper extends BaseScraper {
   }
 
   async scrape(options = {}) {
-    logger.info('Starte Ghana Scraping (Parliament)');
-    
-    const allTrades = [];
-    
-    try {
-      await this.navigateToUrl(this.baseUrl);
-      
-      logger.warn('Ghana-Scraper benötigt länderspezifische Implementierung');
-      
-      logger.info(`Ghana Scraping abgeschlossen. ${allTrades.length} Einträge`);
-      
-    } catch (error) {
-      logger.error('Ghana Scraping fehlgeschlagen:', error);
-      throw error;
-    }
-    
-    return allTrades.map(trade => this.normalizeTrade(trade));
+    logger.info('Ghana Scraper - Noch nicht vollständig implementiert');
+    return []; // Wird später implementiert
   }
 }
 
 module.exports = GhanaScraper;
-

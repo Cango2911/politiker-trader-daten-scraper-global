@@ -1,6 +1,6 @@
 /**
- * Südkorea Scraper
- * Scraped Daten von der National Assembly
+ * South Korea National Assembly Scraper
+ * Template - Wird später implementiert
  */
 const BaseScraper = require('./base.scraper');
 const logger = require('../../utils/logger');
@@ -8,29 +8,13 @@ const logger = require('../../utils/logger');
 class SouthKoreaScraper extends BaseScraper {
   constructor(countryConfig) {
     super(countryConfig);
-    this.baseUrl = 'https://www.assembly.go.kr/portal/main/main.do';
+    this.baseUrl = 'https://www.assembly.go.kr/';
   }
 
   async scrape(options = {}) {
-    logger.info('Starte Südkorea Scraping (National Assembly)');
-    
-    const allTrades = [];
-    
-    try {
-      await this.navigateToUrl(this.baseUrl);
-      
-      logger.warn('Südkorea-Scraper benötigt länderspezifische Implementierung');
-      
-      logger.info(`Südkorea Scraping abgeschlossen. ${allTrades.length} Einträge`);
-      
-    } catch (error) {
-      logger.error('Südkorea Scraping fehlgeschlagen:', error);
-      throw error;
-    }
-    
-    return allTrades.map(trade => this.normalizeTrade(trade));
+    logger.info('South Korea Scraper - Noch nicht vollständig implementiert');
+    return []; // Wird später implementiert
   }
 }
 
 module.exports = SouthKoreaScraper;
-

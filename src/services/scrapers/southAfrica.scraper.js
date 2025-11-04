@@ -1,6 +1,6 @@
 /**
- * Südafrika Scraper
- * Scraped Daten vom Parliament of South Africa
+ * South Africa Parliament Scraper
+ * Template - Wird später implementiert
  */
 const BaseScraper = require('./base.scraper');
 const logger = require('../../utils/logger');
@@ -12,25 +12,9 @@ class SouthAfricaScraper extends BaseScraper {
   }
 
   async scrape(options = {}) {
-    logger.info('Starte Südafrika Scraping (Parliament)');
-    
-    const allTrades = [];
-    
-    try {
-      await this.navigateToUrl(this.baseUrl);
-      
-      logger.warn('Südafrika-Scraper benötigt länderspezifische Implementierung');
-      
-      logger.info(`Südafrika Scraping abgeschlossen. ${allTrades.length} Einträge`);
-      
-    } catch (error) {
-      logger.error('Südafrika Scraping fehlgeschlagen:', error);
-      throw error;
-    }
-    
-    return allTrades.map(trade => this.normalizeTrade(trade));
+    logger.info('South Africa Scraper - Noch nicht vollständig implementiert');
+    return []; // Wird später implementiert
   }
 }
 
 module.exports = SouthAfricaScraper;
-
