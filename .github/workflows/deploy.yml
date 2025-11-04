@@ -1,0 +1,59 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci --production
+    
+    - name: Build Docker image
+      run: docker build -t capitol-trades-scraper:latest .
+    
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    - name: Push to Docker Hub
+      run: |
+        docker tag capitol-trades-scraper:latest ${{ secrets.DOCKER_USERNAME }}/capitol-trades-scraper:latest
+        docker push ${{ secrets.DOCKER_USERNAME }}/capitol-trades-scraper:latest
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    # Optional: Deploy to VPS via SSH
+    - name: Deploy to VPS
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        script: |
+          cd /var/www/trader-daten-politiker
+          git pull origin main
+          npm install --production
+          pm2 restart capitol-trades-api
+      if: false  # Aktivieren Sie dies, wenn Sie VPS-Deployment nutzen
+
+
+
+
+
