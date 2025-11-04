@@ -19,7 +19,7 @@ const config = require('../config/app.config');
  */
 async function connectDatabase() {
   try {
-    await mongoose.connect(config.database.uri, {
+    await mongoose.connect(config.database.mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
