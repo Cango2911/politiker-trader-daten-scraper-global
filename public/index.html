@@ -133,6 +133,47 @@
         </div>
     </section>
 
+    <!-- Global Markets Section (Indizes, Krypto, Rohstoffe) -->
+    <section class="markets-section">
+        <div class="container-fluid">
+            <div class="section-header-compact">
+                <h2 class="section-title">📈 Globale Märkte</h2>
+                <div class="section-subtitle">Börsen-Indizes, Kryptowährungen & Rohstoffe - Live-Daten</div>
+            </div>
+            
+            <!-- Market Tabs -->
+            <div class="market-tabs">
+                <button class="market-tab active" data-tab="indices">🏛️ Börsen-Indizes</button>
+                <button class="market-tab" data-tab="crypto">₿ Krypto (Top 30)</button>
+                <button class="market-tab" data-tab="commodities">🛢️ Rohstoffe</button>
+            </div>
+            
+            <!-- Market Content -->
+            <div class="market-content">
+                <!-- Börsen-Indizes -->
+                <div class="market-tab-content active" id="tab-indices">
+                    <div class="market-grid" id="indicesGrid">
+                        <div class="loading-state">Lade Börsen-Indizes...</div>
+                    </div>
+                </div>
+                
+                <!-- Krypto -->
+                <div class="market-tab-content" id="tab-crypto">
+                    <div class="market-grid" id="cryptoGrid">
+                        <div class="loading-state">Lade Kryptowährungen...</div>
+                    </div>
+                </div>
+                
+                <!-- Rohstoffe -->
+                <div class="market-tab-content" id="tab-commodities">
+                    <div class="market-grid" id="commoditiesGrid">
+                        <div class="loading-state">Lade Rohstoffe...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Footer -->
     <footer class="footer-compact">
         <div class="container-fluid">

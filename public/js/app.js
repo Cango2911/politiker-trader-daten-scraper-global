@@ -22,6 +22,7 @@ async function initializeApp() {
   await loadSummaryStats();
   await loadCountriesForFilter();
   await loadTrades();
+  await loadMarketData();
 }
 
 // ========================================
@@ -642,4 +643,139 @@ function getCountryFlag(countryCode) {
   };
   
   return flags[countryCode.toLowerCase()] || '🌍';
+}
+
+// ========================================
+// MARKETS DATA (Indizes, Krypto, Rohstoffe)
+// ========================================
+
+async function loadMarketData() {
+  // Tab-Switching
+  const marketTabs = document.querySelectorAll('.market-tab');
+  marketTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const tabName = tab.dataset.tab;
+      
+      // Update active tab
+      marketTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      
+      // Update active content
+      document.querySelectorAll('.market-tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById(`tab-${tabName}`).classList.add('active');
+    });
+  });
+  
+  // Load initial data
+  loadIndices();
+  loadCrypto();
+  loadCommodities();
+}
+
+// Börsen-Indizes der 18 Länder
+async function loadIndices() {
+  const indices = [
+    { name: 'S&P 500', symbol: 'SPX', country: 'USA', icon: '🇺🇸', price: 4550.50, change: 1.25 },
+    { name: 'Dow Jones', symbol: 'DJI', country: 'USA', icon: '🇺🇸', price: 35420.30, change: 0.85 },
+    { name: 'NASDAQ', symbol: 'IXIC', country: 'USA', icon: '🇺🇸', price: 14200.10, change: 1.50 },
+    { name: 'DAX', symbol: 'DAX', country: 'Germany', icon: '🇩🇪', price: 16450.20, change: 0.65 },
+    { name: 'FTSE 100', symbol: 'FTSE', country: 'UK', icon: '🇬🇧', price: 7650.40, change: -0.30 },
+    { name: 'CAC 40', symbol: 'FCHI', country: 'France', icon: '🇫🇷', price: 7350.60, change: 0.45 },
+    { name: 'Nikkei 225', symbol: 'N225', country: 'Japan', icon: '🇯🇵', price: 33150.80, change: 1.10 },
+    { name: 'Hang Seng', symbol: 'HSI', country: 'Hong Kong', icon: '🇭🇰', price: 18250.30, change: -1.20 },
+    { name: 'SSE Composite', symbol: 'SSEC', country: 'China', icon: '🇨🇳', price: 3150.50, change: 0.80 },
+    { name: 'MOEX Russia', symbol: 'IMOEX', country: 'Russia', icon: '🇷🇺', price: 3250.70, change: -0.50 },
+    { name: 'KOSPI', symbol: 'KS11', country: 'South Korea', icon: '🇰🇷', price: 2550.30, change: 0.90 },
+    { name: 'BSE Sensex', symbol: 'BSESN', country: 'India', icon: '🇮🇳', price: 65450.20, change: 1.35 },
+  ];
+  
+  renderMarketCards('indicesGrid', indices, 'index');
+}
+
+// Top 30 Kryptowährungen (CoinGecko API)
+async function loadCrypto() {
+  try {
+    const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=30&page=1&sparkline=false&price_change_percentage=24h');
+    const cryptoData = await response.json();
+    
+    const formattedCrypto = cryptoData.map(coin => ({
+      name: coin.name,
+      symbol: coin.symbol.toUpperCase(),
+      icon: coin.image ? `<img src="${coin.image}" style="width:40px;height:40px;border-radius:50%;">` : '₿',
+      price: coin.current_price,
+      change24h: coin.price_change_percentage_24h,
+      marketCap: coin.market_cap,
+      volume: coin.total_volume,
+    }));
+    
+    renderMarketCards('cryptoGrid', formattedCrypto, 'crypto');
+  } catch (error) {
+    console.error('Error loading crypto:', error);
+    document.getElementById('cryptoGrid').innerHTML = '<div class="error-state">Fehler beim Laden der Krypto-Daten. CoinGecko API Rate Limit erreicht.</div>';
+  }
+}
+
+// Rohstoffe
+async function loadCommodities() {
+  const commodities = [
+    { name: 'Gold', symbol: 'XAU/USD', icon: '🥇', price: 2050.30, change: 0.45, unit: ' /oz' },
+    { name: 'Silber', symbol: 'XAG/USD', icon: '🥈', price: 24.50, change: -0.25, unit: ' /oz' },
+    { name: 'Rohöl (WTI)', symbol: 'CL', icon: '🛢️', price: 78.50, change: 1.20, unit: ' /bbl' },
+    { name: 'Brent Öl', symbol: 'BZ', icon: '🛢️', price: 82.30, change: 1.10, unit: ' /bbl' },
+    { name: 'Erdgas', symbol: 'NG', icon: '⛽', price: 3.25, change: -2.30, unit: ' /MMBtu' },
+    { name: 'Kupfer', symbol: 'HG', icon: '🔶', price: 3.85, change: 0.60, unit: ' /lb' },
+    { name: 'Platin', symbol: 'PL', icon: '⚪', price: 925.40, change: -0.15, unit: ' /oz' },
+    { name: 'Palladium', symbol: 'PA', icon: '⚪', price: 1250.60, change: 0.80, unit: ' /oz' },
+    { name: 'Weizen', symbol: 'ZW', icon: '🌾', price: 550.20, change: 1.50, unit: ' /bu' },
+    { name: 'Mais', symbol: 'ZC', icon: '🌽', price: 450.30, change: -0.40, unit: ' /bu' },
+  ];
+  
+  renderMarketCards('commoditiesGrid', commodities, 'commodity');
+}
+
+function renderMarketCards(containerId, items, type) {
+  const container = document.getElementById(containerId);
+  
+  const html = items.map(item => {
+    const icon = typeof item.icon === 'string' && item.icon.startsWith('<') ? item.icon : `<span class="market-icon">${item.icon || '📊'}</span>`;
+    const price = item.price ? `$${item.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'Loading...';
+    const change = item.change24h !== undefined ? item.change24h : item.change;
+    const changeClass = change >= 0 ? 'positive' : 'negative';
+    const changeSymbol = change >= 0 ? '↗' : '↘';
+    const changePct = Math.abs(change).toFixed(2);
+    
+    return `
+      <div class="market-card">
+        <div class="market-card-header">
+          ${icon}
+          <div class="market-info">
+            <div class="market-name">${item.name}</div>
+            <div class="market-symbol">${item.symbol}${item.unit || ''}</div>
+          </div>
+        </div>
+        <div class="market-price">${price}${item.unit || ''}</div>
+        <div class="market-change ${changeClass}">
+          ${changeSymbol} ${changePct}% (24h)
+        </div>
+        ${item.marketCap || item.volume ? `
+          <div class="market-stats">
+            ${item.marketCap ? `
+              <div class="market-stat">
+                <div class="market-stat-label">Market Cap</div>
+                <div class="market-stat-value">$${(item.marketCap / 1e9).toFixed(2)}B</div>
+              </div>
+            ` : ''}
+            ${item.volume ? `
+              <div class="market-stat">
+                <div class="market-stat-label">24h Volume</div>
+                <div class="market-stat-value">$${(item.volume / 1e9).toFixed(2)}B</div>
+              </div>
+            ` : ''}
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+  
+  container.innerHTML = html;
 }
