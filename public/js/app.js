@@ -879,66 +879,21 @@ function closeChartModal() {
 
 function loadTradingViewChart(symbol) {
   const chartContainer = document.getElementById('tradingview_chart');
-  chartContainer.innerHTML = ''; // Clear previous chart
   
-  // Warte kurz, dann initialisiere Chart
-  setTimeout(() => {
-    new TradingView.widget({
-      "width": "100%",
-      "height": "100%",
-      "symbol": symbol,
-      "interval": "D", // Default: 1 Tag
-      "timezone": "Europe/Berlin",
-      "theme": document.body.classList.contains('light-theme') ? "light" : "dark",
-      "style": "1", // Candlestick
-      "locale": "de_DE",
-      "toolbar_bg": "#1e222d",
-      "enable_publishing": false,
-      "withdateranges": true,
-      "hide_side_toolbar": false,
-      "allow_symbol_change": true,
-      "details": true,
-      "hotlist": true,
-      "calendar": true,
-      "studies": [
-        "RSI@tv-basicstudies",
-        "MACD@tv-basicstudies",
-        "BB@tv-basicstudies",
-        "Volume@tv-basicstudies"
-      ],
-      "container_id": "tradingview_chart",
-      "save_image": true,
-      "hide_top_toolbar": false,
-      "hide_legend": false,
-      "timeframes": [
-        { "text": "1m", "resolution": "1" },
-        { "text": "5m", "resolution": "5" },
-        { "text": "15m", "resolution": "15" },
-        { "text": "30m", "resolution": "30" },
-        { "text": "1h", "resolution": "60" },
-        { "text": "3h", "resolution": "180" },
-        { "text": "6h", "resolution": "360" },
-        { "text": "12h", "resolution": "720" },
-        { "text": "1D", "resolution": "D" },
-        { "text": "3D", "resolution": "3D" },
-        { "text": "1W", "resolution": "W" },
-        { "text": "1M", "resolution": "M" }
-      ],
-      "disabled_features": [],
-      "enabled_features": [
-        "study_templates",
-        "create_volume_indicator_by_default",
-        "header_widget_dom_node",
-        "side_toolbar_in_fullscreen_mode"
-      ],
-      "overrides": {
-        "mainSeriesProperties.candleStyle.upColor": "#16c784",
-        "mainSeriesProperties.candleStyle.downColor": "#ea3943",
-        "mainSeriesProperties.candleStyle.borderUpColor": "#16c784",
-        "mainSeriesProperties.candleStyle.borderDownColor": "#ea3943",
-        "mainSeriesProperties.candleStyle.wickUpColor": "#16c784",
-        "mainSeriesProperties.candleStyle.wickDownColor": "#ea3943"
-      }
-    });
-  }, 100);
+  // Konvertiere Symbol für TradingView URL (z.B. "TVC:SPX" -> "SPX")
+  const cleanSymbol = symbol.replace(':', '%3A');
+  
+  // Erstelle TradingView Advanced Chart mit iframe
+  const theme = document.body.classList.contains('light-theme') ? 'light' : 'dark';
+  
+  chartContainer.innerHTML = `
+    <iframe 
+      src="https://www.tradingview.com/widgetembed/?frameElementId=tradingview_chart&symbol=${cleanSymbol}&interval=D&hidesidetoolbar=0&saveimage=1&toolbarbg=f1f3f6&studies=RSI%40tv-basicstudies%1FMACD%40tv-basicstudies%1FVolume%40tv-basicstudies%1FBB%40tv-basicstudies&theme=${theme}&style=1&timezone=Europe%2FBerlin&studies_overrides=%7B%7D&overrides=%7B%7D&enabled_features=%5B%22study_templates%22%2C%22create_volume_indicator_by_default%22%5D&disabled_features=%5B%5D&locale=de_DE&utm_source=api.srv1105698.hstgr.cloud&utm_medium=widget&utm_campaign=chart&utm_term=${cleanSymbol}" 
+      style="width: 100%; height: 100%; margin: 0; padding: 0; border: none;"
+      frameborder="0"
+      allowtransparency="true"
+      scrolling="no"
+      allowfullscreen
+    ></iframe>
+  `;
 }
