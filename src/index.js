@@ -20,8 +20,21 @@ const app = express();
  * Middleware Setup
  */
 
-// Security Headers
-app.use(helmet());
+// Security Headers mit lockerer CSP für TradingView, CoinGecko, externe Bilder
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://s3.tradingview.com", "https://unpkg.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      imgSrc: ["'self'", "data:", "https:", "http:"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      connectSrc: ["'self'", "https://api.coingecko.com", "wss://"],
+      frameSrc: ["'self'", "https://www.tradingview.com"],
+      workerSrc: ["'self'", "blob:"],
+    },
+  },
+}));
 
 // CORS
 app.use(cors({
