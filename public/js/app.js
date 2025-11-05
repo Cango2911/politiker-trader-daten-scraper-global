@@ -174,6 +174,7 @@ function setupEventListeners() {
   // Filters
   const applyBtn = document.getElementById('applyFilters');
   const resetBtn = document.getElementById('resetFilters');
+  const viewAllBtn = document.getElementById('viewAllTrades');
   
   if (applyBtn) {
     applyBtn.addEventListener('click', applyFilters);
@@ -181,6 +182,13 @@ function setupEventListeners() {
   
   if (resetBtn) {
     resetBtn.addEventListener('click', resetFilters);
+  }
+  
+  if (viewAllBtn) {
+    viewAllBtn.addEventListener('click', () => {
+      loadTrades(100); // Zeige mehr Trades
+      viewAllBtn.style.display = 'none'; // Verstecke Button nach Klick
+    });
   }
   
   // Enter key on search
@@ -350,13 +358,13 @@ function populateCountryFilter(countries) {
 // LOAD TRADES
 // ========================================
 
-async function loadTrades() {
+async function loadTrades(limit = 15) {
   const container = document.getElementById('tradesContainer');
   container.innerHTML = '<div class="loading-state">Lade Trades...</div>';
   
   try {
     const queryParams = new URLSearchParams({
-      limit: 100,
+      limit: limit,
       sort: '-dates.transaction', // Neueste zuerst
       ...currentFilters
     });
@@ -365,6 +373,13 @@ async function loadTrades() {
     const data = await response.json();
     
     if (data.success && data.data && data.data.length > 0) {
+      // Update total count in button
+      const totalCount = data.pagination?.total || 0;
+      const totalCountEl = document.getElementById('totalTradesCount');
+      if (totalCountEl) {
+        totalCountEl.textContent = totalCount;
+      }
+      
       // Filtere Trades: Zeige zuerst Trades mit echten Werten (USA)
       const tradesWithValues = data.data.filter(t => t.trade?.ticker && t.trade?.ticker !== 'N/A');
       const tradesWithoutValues = data.data.filter(t => !t.trade?.ticker || t.trade?.ticker === 'N/A');

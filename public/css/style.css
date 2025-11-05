@@ -527,13 +527,36 @@ a:hover {
    ======================================== */
 
 .trades-main {
-  min-height: calc(100vh - 300px);
   background: var(--bg-primary);
+  padding: 2rem 0 3rem 0;
+}
+
+.section-header-compact {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.section-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.section-subtitle {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  font-weight: 400;
 }
 
 .table-wrapper {
   overflow-x: auto;
+  max-height: 650px;
+  overflow-y: auto;
   margin-top: 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .trades-cmc-table {
@@ -766,6 +789,35 @@ a:hover {
   text-align: right;
   color: var(--text-secondary);
   white-space: nowrap;
+}
+
+/* Table Footer Actions */
+.table-footer-actions {
+  margin-top: 2rem;
+  text-align: center;
+  padding: 1.5rem 0;
+}
+
+.btn-view-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2rem;
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(56, 97, 251, 0.2);
+}
+
+.btn-view-all:hover {
+  background: #4a6ff7;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(56, 97, 251, 0.3);
 }
 
 /* ========================================

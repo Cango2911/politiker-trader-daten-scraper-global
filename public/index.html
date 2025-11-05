@@ -115,11 +115,20 @@
         </div>
     </section>
 
-    <!-- Main Trades Table (wie CMC - 90% der Seite) -->
+    <!-- Main Trades Table (Top 15 Recent Trades) -->
     <section class="trades-main">
         <div class="container-fluid">
+            <div class="section-header-compact">
+                <h2 class="section-title">🔥 Neueste Politiker-Trades</h2>
+                <div class="section-subtitle">Live-Tracking von Käufen und Verkäufen aus 18 Ländern</div>
+            </div>
             <div class="table-wrapper" id="tradesContainer">
                 <div class="loading-state">Lade Trades...</div>
+            </div>
+            <div class="table-footer-actions">
+                <button class="btn-view-all" id="viewAllTrades">
+                    Alle <span id="totalTradesCount">632</span> Trades anzeigen →
+                </button>
             </div>
         </div>
     </section>
