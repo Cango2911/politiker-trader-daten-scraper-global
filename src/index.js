@@ -60,12 +60,22 @@ app.use('/api/', apiLimiter);
  * Routes
  */
 
-// Root Endpoint
+// Root Endpoint - Serve new main homepage
 app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index-new.html'));
+});
+
+// Politician Trades - Bonus Feature (old homepage)
+app.get('/politician-trades', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
+// API Info Endpoint
+app.get('/api-info', (req, res) => {
   res.json({
     success: true,
-    message: 'Capitol Trades Global Scraper API',
-    version: '1.0.0',
+    message: 'FinanceHub API',
+    version: '2.0.0',
     documentation: '/docs',
     endpoints: {
       trades: '/api/trades',
@@ -73,9 +83,10 @@ app.get('/', (req, res) => {
       countries: '/api/countries',
       config: '/api/config',
       stats: '/api/stats',
+      market: '/api/market',
       health: '/health',
     },
-    description: 'API für Politiker-Trading-Daten aus 16 Ländern weltweit',
+    description: 'Global Financial News & Political Trading Data API',
     supportedCountries: [
       '🇺🇸 USA',
       '🇩🇪 Deutschland',
