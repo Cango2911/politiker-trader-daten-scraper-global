@@ -1,295 +1,389 @@
 // ===================================
+// GLOBAL CONFIG
+// ===================================
+
+const API_BASE = window.location.origin;
+let currentPage = 1;
+let currentFilters = {};
+
+// ===================================
 // THEME TOGGLE
 // ===================================
 
 const themeToggle = document.getElementById('themeToggle');
+const themeIcon = document.getElementById('themeIcon');
 const body = document.body;
 
-// Load saved theme
 const savedTheme = localStorage.getItem('theme') || 'dark';
-body.className = savedTheme === 'light' ? 'light-theme' : 'dark-theme';
-updateThemeIcon();
+if (savedTheme === 'light') {
+    body.classList.add('light-theme');
+    themeIcon.textContent = '☀️';
+}
 
 themeToggle.addEventListener('click', () => {
+    body.classList.toggle('light-theme');
     const isLight = body.classList.contains('light-theme');
-    body.className = isLight ? 'dark-theme' : 'light-theme';
-    localStorage.setItem('theme', isLight ? 'dark' : 'light');
-    updateThemeIcon();
+    themeIcon.textContent = isLight ? '☀️' : '🌙';
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
 });
-
-function updateThemeIcon() {
-    const icon = themeToggle.querySelector('.theme-icon');
-    icon.textContent = body.classList.contains('light-theme') ? '☀️' : '🌙';
-}
 
 // ===================================
-// HERO SLIDER
+// HERO SLIDER (Swiper.js)
 // ===================================
 
-const slides = document.querySelectorAll('.slide');
-const prevBtn = document.getElementById('prevSlide');
-const nextBtn = document.getElementById('nextSlide');
-const dotsContainer = document.getElementById('sliderDots');
-
-let currentSlide = 0;
-let slideInterval;
-
-// Create dots
-slides.forEach((_, index) => {
-    const dot = document.createElement('div');
-    dot.classList.add('slider-dot');
-    if (index === 0) dot.classList.add('active');
-    dot.addEventListener('click', () => goToSlide(index));
-    dotsContainer.appendChild(dot);
+const breakingNewsSwiper = new Swiper('.breaking-news-slider', {
+    slidesPerView: 1,
+    spaceBetween: 0,
+    loop: true,
+    autoplay: {
+        delay: 5000,
+        disableOnInteraction: false,
+    },
+    pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+    },
+    navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+    },
 });
-
-const dots = document.querySelectorAll('.slider-dot');
-
-function showSlide(index) {
-    slides.forEach(slide => slide.classList.remove('active'));
-    dots.forEach(dot => dot.classList.remove('active'));
-    
-    slides[index].classList.add('active');
-    dots[index].classList.add('active');
-}
-
-function nextSlide() {
-    currentSlide = (currentSlide + 1) % slides.length;
-    showSlide(currentSlide);
-}
-
-function prevSlide() {
-    currentSlide = (currentSlide - 1 + slides.length) % slides.length;
-    showSlide(currentSlide);
-}
-
-function goToSlide(index) {
-    currentSlide = index;
-    showSlide(currentSlide);
-    resetInterval();
-}
-
-function resetInterval() {
-    clearInterval(slideInterval);
-    slideInterval = setInterval(nextSlide, 5000);
-}
-
-prevBtn.addEventListener('click', () => {
-    prevSlide();
-    resetInterval();
-});
-
-nextBtn.addEventListener('click', () => {
-    nextSlide();
-    resetInterval();
-});
-
-// Auto-play
-slideInterval = setInterval(nextSlide, 5000);
 
 // ===================================
-// MARKET TICKER
+// MARKET TICKER BAR (Alpha Vantage)
 // ===================================
 
 async function loadMarketTicker() {
-    const tickerContainer = document.getElementById('marketTickerItems');
+    const tickerItems = document.querySelectorAll('.ticker-item');
     
-    try {
-        // Fetch real-time market data
-        const markets = [
-            { symbol: 'BTC/USD', price: 103890, change: 2.79, type: 'crypto' },
-            { symbol: 'ETH/USD', price: 3431, change: 4.93, type: 'crypto' },
-            { symbol: 'S&P 500', price: 4550, change: 0.37, type: 'index' },
-            { symbol: 'NASDAQ', price: 14200, change: 1.50, type: 'index' },
-            { symbol: 'EUR/USD', price: 1.08, change: 0.08, type: 'forex' },
-            { symbol: 'Gold', price: 2045, change: -0.52, type: 'commodity' },
-            { symbol: 'Oil (Brent)', price: 82.5, change: -1.38, type: 'commodity' },
-            { symbol: 'TSLA', price: 238, change: 3.2, type: 'stock' },
-        ];
-        
-        // Duplicate for seamless scrolling
-        const allMarkets = [...markets, ...markets];
-        
-        tickerContainer.innerHTML = allMarkets.map(market => `
-            <div class="ticker-item">
-                <span class="ticker-label">${market.symbol}</span>
-                <span class="ticker-value">$${market.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
-                <span class="ticker-change ${market.change >= 0 ? 'positive' : 'negative'}">
-                    ${market.change >= 0 ? '▲' : '▼'} ${Math.abs(market.change)}%
-                </span>
-            </div>
-        `).join('');
-    } catch (error) {
-        console.error('Error loading market ticker:', error);
-    }
-}
-
-// ===================================
-// MARKET OVERVIEW TABLE
-// ===================================
-
-const filterBtns = document.querySelectorAll('.filter-btn');
-let currentCategory = 'all';
-
-filterBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        filterBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentCategory = btn.dataset.category;
-        loadMarketTable();
-    });
-});
-
-async function loadMarketTable() {
-    const tbody = document.getElementById('marketTableBody');
-    tbody.innerHTML = '<tr><td colspan="6" class="loading-cell">Loading market data...</td></tr>';
+    // Simulated data (replace with Alpha Vantage API calls)
+    const marketData = {
+        'SPX': { value: 4550.50, change: 0.37 },
+        'DJI': { value: 35420.30, change: 0.15 },
+        'DAX': { value: 16450.20, change: 0.65 },
+        'BTC': { value: 103890.00, change: 2.79 },
+        'EUR/USD': { value: 1.0856, change: 0.08 },
+        'OIL': { value: 78.45, change: -1.38 }
+    };
     
-    try {
-        // Sample market data
-        const markets = [
-            { name: 'Bitcoin', symbol: 'BTC', category: 'crypto', price: 103890, change: 2890, changePercent: 2.79, volume: '78.07B' },
-            { name: 'Ethereum', symbol: 'ETH', category: 'crypto', price: 3431, change: 161, changePercent: 4.93, volume: '44.99B' },
-            { name: 'S&P 500', symbol: 'SPX', category: 'indices', price: 4550.50, change: 16.70, changePercent: 0.37, volume: '2.1B' },
-            { name: 'NASDAQ', symbol: 'IXIC', category: 'indices', price: 14200.10, change: 210.30, changePercent: 1.50, volume: '4.5B' },
-            { name: 'DAX', symbol: 'DAX', category: 'indices', price: 16450.20, change: 106.40, changePercent: 0.65, volume: '3.2B' },
-            { name: 'Gold', symbol: 'XAU', category: 'commodities', price: 2045.30, change: -10.60, changePercent: -0.52, volume: '180M' },
-            { name: 'Oil (Brent)', symbol: 'BRN', category: 'commodities', price: 82.50, change: -1.15, changePercent: -1.38, volume: '350M' },
-            { name: 'EUR/USD', symbol: 'EURUSD', category: 'forex', price: 1.0845, change: 0.0009, changePercent: 0.08, volume: '1.2T' },
-            { name: 'GBP/USD', symbol: 'GBPUSD', category: 'forex', price: 1.2650, change: 0.0025, changePercent: 0.20, volume: '800B' },
-        ];
+    tickerItems.forEach(item => {
+        const symbol = item.dataset.symbol;
+        const data = marketData[symbol];
         
-        const filteredMarkets = currentCategory === 'all' 
-            ? markets 
-            : markets.filter(m => m.category === currentCategory);
-        
-        if (filteredMarkets.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="loading-cell">No markets found for this category</td></tr>';
-            return;
+        if (data) {
+            const valueSpan = item.querySelector('.ticker-value');
+            const changeSpan = item.querySelector('.ticker-change');
+            
+            if (symbol === 'BTC') {
+                valueSpan.textContent = `$${data.value.toLocaleString('en-US', {minimumFractionDigits: 0})}`;
+            } else if (symbol === 'EUR/USD') {
+                valueSpan.textContent = data.value.toFixed(4);
+            } else {
+                valueSpan.textContent = data.value.toLocaleString('en-US', {minimumFractionDigits: 2});
+            }
+            
+            const isPositive = data.change >= 0;
+            changeSpan.textContent = `${isPositive ? '+' : ''}${data.change.toFixed(2)}%`;
+            changeSpan.className = `ticker-change ${isPositive ? 'positive' : 'negative'}`;
         }
-        
-        tbody.innerHTML = filteredMarkets.map(market => `
-            <tr>
-                <td>
-                    <div style="font-weight: 600;">${market.name}</div>
-                    <div style="font-size: 0.875rem; color: var(--text-tertiary);">${market.symbol}</div>
-                </td>
-                <td style="font-weight: 600;">$${market.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-                <td style="color: ${market.change >= 0 ? 'var(--success)' : 'var(--danger)'}">
-                    ${market.change >= 0 ? '+' : ''}${market.change.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                </td>
-                <td style="color: ${market.changePercent >= 0 ? 'var(--success)' : 'var(--danger)'}; font-weight: 600;">
-                    ${market.changePercent >= 0 ? '+' : ''}${market.changePercent.toFixed(2)}%
-                </td>
-                <td style="color: var(--text-secondary);">${market.volume}</td>
-                <td>
-                    <svg width="80" height="30" viewBox="0 0 80 30">
-                        <polyline 
-                            fill="none" 
-                            stroke="${market.changePercent >= 0 ? 'var(--success)' : 'var(--danger)'}" 
-                            stroke-width="2" 
-                            points="${generateSparkline()}"
-                        />
-                    </svg>
-                </td>
-            </tr>
-        `).join('');
-    } catch (error) {
-        console.error('Error loading market table:', error);
-        tbody.innerHTML = '<tr><td colspan="6" class="loading-cell">Error loading data. Please try again.</td></tr>';
-    }
-}
-
-function generateSparkline() {
-    // Generate random sparkline data
-    const points = [];
-    for (let i = 0; i < 7; i++) {
-        const x = (i / 6) * 80;
-        const y = 5 + Math.random() * 20;
-        points.push(`${x},${y}`);
-    }
-    return points.join(' ');
+    });
 }
 
 // ===================================
-// MARKET SENTIMENT
+// MARKET SENTIMENT & REGIONAL FILTERS
 // ===================================
 
-const regionBtns = document.querySelectorAll('.region-btn');
+const regionButtons = document.querySelectorAll('.region-btn');
 
-regionBtns.forEach(btn => {
+regionButtons.forEach(btn => {
     btn.addEventListener('click', () => {
-        regionBtns.forEach(b => b.classList.remove('active'));
+        regionButtons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        // Load region-specific data
+        
+        const region = btn.dataset.region;
+        loadSentimentData(region);
     });
 });
 
+function loadSentimentData(region) {
+    console.log(`Loading sentiment data for region: ${region}`);
+    // This would fetch region-specific data from your API
+    // For now, it's static in HTML
+}
+
 // ===================================
-// NEWSLETTER FORM
+// POLITICIAN TRADES TABLE
 // ===================================
 
-const newsletterForm = document.getElementById('newsletterForm');
+async function loadTrades(page = 1, filters = {}) {
+    try {
+        const params = new URLSearchParams({
+            page,
+            limit: 20,
+            ...filters
+        });
+        
+        const response = await fetch(`${API_BASE}/api/trades?${params}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            renderTrades(data.data);
+            updatePagination(data.pagination);
+        }
+    } catch (error) {
+        console.error('Error loading trades:', error);
+        showError('Failed to load trades. Please try again.');
+    }
+}
 
-newsletterForm.addEventListener('submit', async (e) => {
+function renderTrades(trades) {
+    const tbody = document.getElementById('tradesTableBody');
+    
+    if (!trades || trades.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="loading-cell">No trades found</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = trades.map((trade, index) => {
+        const country = trade.country.toUpperCase();
+        const countryFlag = getCountryFlag(country);
+        const tradeType = trade.trade.type.toUpperCase();
+        const tradeTypeClass = trade.trade.type === 'purchase' ? 'buy' : 'sell';
+        
+        return `
+            <tr>
+                <td>${(currentPage - 1) * 20 + index + 1}</td>
+                <td>
+                    <div class="politician-cell">
+                        ${trade.politician.imageUrl ? 
+                            `<img src="${trade.politician.imageUrl}" alt="${trade.politician.name}" class="politician-avatar">` :
+                            `<div class="politician-avatar-fallback">${getInitials(trade.politician.name)}</div>`
+                        }
+                        <div class="politician-info">
+                            <span class="politician-name">${trade.politician.name}</span>
+                            ${trade.politician.party ? `<span class="politician-party">${trade.politician.party}</span>` : ''}
+                        </div>
+                    </div>
+                </td>
+                <td>${countryFlag} ${country}</td>
+                <td>
+                    <div class="asset-cell">
+                        ${trade.trade.ticker ? `<span class="asset-ticker">${trade.trade.ticker}</span>` : ''}
+                        <span class="asset-name">${trade.trade.assetName || 'N/A'}</span>
+                    </div>
+                </td>
+                <td><span class="trade-badge ${tradeTypeClass}">${tradeType}</span></td>
+                <td>${formatAmount(trade.trade.sizeMin, trade.trade.sizeMax)}</td>
+                <td>${trade.trade.price ? `$${trade.trade.price.toFixed(2)}` : '—'}</td>
+                <td>${formatDate(trade.dates.transaction)}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function updatePagination(pagination) {
+    const pageInfo = document.getElementById('pageInfo');
+    const prevBtn = document.getElementById('prevPage');
+    const nextBtn = document.getElementById('nextPage');
+    
+    if (pagination) {
+        pageInfo.textContent = `Page ${pagination.page} of ${pagination.pages}`;
+        prevBtn.disabled = pagination.page === 1;
+        nextBtn.disabled = pagination.page === pagination.pages;
+    }
+}
+
+// ===================================
+// FILTERS & SEARCH
+// ===================================
+
+const countryFilter = document.getElementById('countryFilter');
+const tradeTypeFilter = document.getElementById('tradeTypeFilter');
+const searchInput = document.getElementById('searchInput');
+
+countryFilter.addEventListener('change', applyFilters);
+tradeTypeFilter.addEventListener('change', applyFilters);
+searchInput.addEventListener('input', debounce(applyFilters, 500));
+
+function applyFilters() {
+    currentFilters = {
+        country: countryFilter.value,
+        tradeType: tradeTypeFilter.value,
+        search: searchInput.value
+    };
+    
+    currentPage = 1;
+    loadTrades(currentPage, currentFilters);
+}
+
+// ===================================
+// PAGINATION
+// ===================================
+
+document.getElementById('prevPage').addEventListener('click', () => {
+    if (currentPage > 1) {
+        currentPage--;
+        loadTrades(currentPage, currentFilters);
+    }
+});
+
+document.getElementById('nextPage').addEventListener('click', () => {
+    currentPage++;
+    loadTrades(currentPage, currentFilters);
+});
+
+// ===================================
+// DOWNLOAD REPORT
+// ===================================
+
+document.getElementById('downloadBtn').addEventListener('click', async () => {
+    try {
+        const response = await fetch(`${API_BASE}/api/trades/export`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(currentFilters)
+        });
+        
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `politician-trades-${Date.now()}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } else {
+            showError('Download failed. Please try again.');
+        }
+    } catch (error) {
+        console.error('Download error:', error);
+        showError('Download failed. Please try again.');
+    }
+});
+
+// ===================================
+// NEWSLETTER SIGNUP
+// ===================================
+
+document.getElementById('newsletterForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const email = e.target.querySelector('input[type="email"]').value;
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
-    
-    submitBtn.textContent = 'Subscribing...';
-    submitBtn.disabled = true;
     
     try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        const response = await fetch(`${API_BASE}/api/newsletter/subscribe`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email })
+        });
         
-        alert(`✅ Thank you for subscribing!\n\nWe've sent a confirmation email to: ${email}\n\nYour market report download will start shortly.`);
-        
-        // Reset form
-        e.target.reset();
-        submitBtn.textContent = '✓ Subscribed!';
-        
-        setTimeout(() => {
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-        }, 3000);
+        if (response.ok) {
+            showSuccess('Successfully subscribed to newsletter!');
+            e.target.reset();
+        } else {
+            showError('Subscription failed. Please try again.');
+        }
     } catch (error) {
-        alert('❌ Subscription failed. Please try again.');
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
+        console.error('Newsletter error:', error);
+        showError('Subscription failed. Please try again.');
     }
 });
 
 // ===================================
-// INITIALIZE
+// UTILITY FUNCTIONS
+// ===================================
+
+function getCountryFlag(countryCode) {
+    const flags = {
+        'USA': '🇺🇸',
+        'GERMANY': '🇩🇪',
+        'UK': '🇬🇧',
+        'FRANCE': '🇫🇷',
+        'RUSSIA': '🇷🇺',
+        'CHINA': '🇨🇳',
+        'JAPAN': '🇯🇵',
+        'INDIA': '🇮🇳'
+    };
+    return flags[countryCode] || '🌍';
+}
+
+function getInitials(name) {
+    return name
+        .split(' ')
+        .map(word => word[0])
+        .join('')
+        .substring(0, 2)
+        .toUpperCase();
+}
+
+function formatAmount(min, max) {
+    if (!min && !max) return '—';
+    if (min && max) return `$${min.toLocaleString()} - $${max.toLocaleString()}`;
+    if (min) return `$${min.toLocaleString()}+`;
+    return `Up to $${max.toLocaleString()}`;
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    if (date.toDateString() === today.toDateString()) return 'Today';
+    if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+    
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function showSuccess(message) {
+    // Create toast notification
+    const toast = document.createElement('div');
+    toast.className = 'toast toast-success';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+function showError(message) {
+    const toast = document.createElement('div');
+    toast.className = 'toast toast-error';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+// ===================================
+// INITIALIZE ON PAGE LOAD
 // ===================================
 
 document.addEventListener('DOMContentLoaded', () => {
     loadMarketTicker();
-    loadMarketTable();
+    loadTrades(1);
     
-    // Add smooth scroll behavior
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        });
-    });
+    // Refresh market ticker every 30 seconds
+    setInterval(loadMarketTicker, 30000);
 });
-
-// ===================================
-// REFRESH DATA PERIODICALLY
-// ===================================
-
-setInterval(() => {
-    loadMarketTicker();
-    loadMarketTable();
-}, 60000); // Refresh every minute
-
