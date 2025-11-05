@@ -201,6 +201,28 @@ function setupEventListeners() {
       }
     });
   }
+  
+  // Chart Modal
+  const chartModalClose = document.getElementById('chartModalClose');
+  const chartModalBackdrop = document.getElementById('chartModalBackdrop');
+  
+  if (chartModalClose) {
+    chartModalClose.addEventListener('click', closeChartModal);
+  }
+  
+  if (chartModalBackdrop) {
+    chartModalBackdrop.addEventListener('click', closeChartModal);
+  }
+  
+  // ESC key to close modal
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const modal = document.getElementById('chartModal');
+      if (modal && modal.classList.contains('active')) {
+        closeChartModal();
+      }
+    }
+  });
 }
 
 // ========================================
@@ -736,7 +758,7 @@ async function loadCommodities() {
 function renderMarketCards(containerId, items, type) {
   const container = document.getElementById(containerId);
   
-  const html = items.map(item => {
+  const html = items.map((item, index) => {
     const icon = typeof item.icon === 'string' && item.icon.startsWith('<') ? item.icon : `<span class="market-icon">${item.icon || '📊'}</span>`;
     const price = item.price ? `$${item.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'Loading...';
     const change = item.change24h !== undefined ? item.change24h : item.change;
@@ -744,8 +766,44 @@ function renderMarketCards(containerId, items, type) {
     const changeSymbol = change >= 0 ? '↗' : '↘';
     const changePct = Math.abs(change).toFixed(2);
     
+    // TradingView Symbol basierend auf Typ
+    let tvSymbol = '';
+    if (type === 'crypto') {
+      tvSymbol = `BINANCE:${item.symbol}USDT`;
+    } else if (type === 'index') {
+      const indexMapping = {
+        'SPX': 'TVC:SPX',
+        'DJI': 'TVC:DJI',
+        'IXIC': 'NASDAQ:IXIC',
+        'DAX': 'XETR:DAX',
+        'FTSE': 'TVC:UKX',
+        'FCHI': 'TVC:CAC',
+        'N225': 'TVC:NI225',
+        'HSI': 'TVC:HSI',
+        'SSEC': 'SSE:000001',
+        'IMOEX': 'MOEX:IMOEX',
+        'KS11': 'TVC:KOSPI',
+        'BSESN': 'BSE:SENSEX',
+      };
+      tvSymbol = indexMapping[item.symbol] || `TVC:${item.symbol}`;
+    } else if (type === 'commodity') {
+      const commodityMapping = {
+        'XAU/USD': 'TVC:GOLD',
+        'XAG/USD': 'TVC:SILVER',
+        'CL': 'NYMEX:CL1!',
+        'BZ': 'NYMEX:BZ1!',
+        'NG': 'NYMEX:NG1!',
+        'HG': 'COMEX:HG1!',
+        'PL': 'NYMEX:PL1!',
+        'PA': 'NYMEX:PA1!',
+        'ZW': 'CBOT:ZW1!',
+        'ZC': 'CBOT:ZC1!',
+      };
+      tvSymbol = commodityMapping[item.symbol] || `OANDA:${item.symbol}`;
+    }
+    
     return `
-      <div class="market-card">
+      <div class="market-card" data-symbol="${tvSymbol}" data-name="${item.name}" data-type="${type}">
         <div class="market-card-header">
           ${icon}
           <div class="market-info">
@@ -778,4 +836,71 @@ function renderMarketCards(containerId, items, type) {
   }).join('');
   
   container.innerHTML = html;
+  
+  // Add click listeners to open chart modal
+  setTimeout(() => {
+    container.querySelectorAll('.market-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const symbol = card.dataset.symbol;
+        const name = card.dataset.name;
+        openChartModal(symbol, name);
+      });
+    });
+  }, 100);
+}
+
+// ========================================
+// CHART MODAL
+// ========================================
+
+function openChartModal(symbol, name) {
+  const modal = document.getElementById('chartModal');
+  const symbolEl = document.getElementById('chartModalSymbol');
+  const nameEl = document.getElementById('chartModalName');
+  
+  symbolEl.textContent = symbol;
+  nameEl.textContent = name;
+  
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  
+  // Load TradingView Chart
+  loadTradingViewChart(symbol);
+}
+
+function closeChartModal() {
+  const modal = document.getElementById('chartModal');
+  modal.classList.remove('active');
+  document.body.style.overflow = 'auto';
+  
+  // Clear chart
+  document.getElementById('tradingview_chart').innerHTML = '';
+}
+
+function loadTradingViewChart(symbol) {
+  const chartContainer = document.getElementById('tradingview_chart');
+  chartContainer.innerHTML = ''; // Clear previous chart
+  
+  new TradingView.widget({
+    "autosize": true,
+    "symbol": symbol,
+    "interval": "D",
+    "timezone": "Europe/Berlin",
+    "theme": document.body.classList.contains('light-theme') ? "light" : "dark",
+    "style": "1",
+    "locale": "de_DE",
+    "toolbar_bg": "#f1f3f6",
+    "enable_publishing": false,
+    "allow_symbol_change": true,
+    "container_id": "tradingview_chart",
+    "studies": [
+      "RSI@tv-basicstudies",
+      "MACD@tv-basicstudies",
+      "BB@tv-basicstudies"
+    ],
+    "show_popup_button": true,
+    "popup_width": "1000",
+    "popup_height": "650",
+    "support_host": "https://www.tradingview.com"
+  });
 }

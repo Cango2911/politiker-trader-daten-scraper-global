@@ -189,6 +189,26 @@
         </div>
     </footer>
 
+    <!-- TradingView Chart Modal -->
+    <div class="chart-modal" id="chartModal">
+        <div class="chart-modal-backdrop" id="chartModalBackdrop"></div>
+        <div class="chart-modal-content">
+            <div class="chart-modal-header">
+                <div class="chart-modal-title">
+                    <span id="chartModalSymbol">BTC/USD</span>
+                    <span id="chartModalName">Bitcoin</span>
+                </div>
+                <button class="chart-modal-close" id="chartModalClose">✕</button>
+            </div>
+            <div class="chart-modal-body">
+                <!-- TradingView Advanced Chart Widget -->
+                <div class="tradingview-widget-container" id="tradingviewChartContainer">
+                    <div id="tradingview_chart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- TradingView Widget Script -->
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script src="/js/app.js"></script>
