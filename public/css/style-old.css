@@ -1,0 +1,1221 @@
+/* ========================================
+   COINMARKETCAP-STYLE DESIGN
+   Follow the Money - Politiker Trading Tracker
+   ======================================== */
+
+:root {
+  /* Dark Theme Colors */
+  --bg-primary: #17171A;
+  --bg-secondary: #1C1C21;
+  --bg-tertiary: #23232A;
+  --bg-hover: #2A2A32;
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #B0B0B8;
+  --text-tertiary: #808088;
+  
+  --border-color: #2E2E38;
+  --border-hover: #3E3E48;
+  
+  --accent-primary: #3861FB;
+  --accent-success: #16C784;
+  --accent-danger: #EA3943;
+  --accent-warning: #F7931A;
+  
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+}
+
+/* Light Theme */
+body.light-mode {
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F8F9FB;
+  --bg-tertiary: #EFF2F5;
+  --bg-hover: #E8ECF0;
+  
+  --text-primary: #181A20;
+  --text-secondary: #58667E;
+  --text-tertiary: #848E9C;
+  
+  --border-color: #EAECEF;
+  --border-hover: #D9DCE1;
+}
+
+/* ========================================
+   RESET & BASE
+   ======================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-primary);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  font-size: 14px;
+  overflow-x: hidden;
+}
+
+.container-fluid {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: var(--text-primary);
+}
+
+/* ========================================
+   HEADER (Compact wie CMC)
+   ======================================== */
+
+.header-compact {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: 64px;
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+
+.logo-compact {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.logo-icon {
+  font-size: 1.5rem;
+}
+
+.logo-text {
+  background: linear-gradient(135deg, #3861FB, #8B5CF6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav-main {
+  display: flex;
+  gap: 2rem;
+}
+
+.nav-link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.5rem 0;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.nav-link:hover {
+  color: var(--text-primary);
+}
+
+.nav-link.active {
+  color: var(--accent-primary);
+  border-bottom-color: var(--accent-primary);
+}
+
+.header-actions-compact {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.theme-toggle-compact {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.25rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.theme-toggle-compact:hover {
+  background: var(--bg-hover);
+}
+
+.api-status-compact {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.status-dot-compact {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-success);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ========================================
+   SUMMARY BAR (wie CMC Top Cards)
+   ======================================== */
+
+.stats-bar {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem 0;
+}
+
+.stats-compact {
+  display: flex;
+  gap: 2rem;
+  overflow-x: auto;
+  padding: 0.5rem 0;
+}
+
+.stat-compact {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.stat-compact .stat-label {
+  font-size: 0.8125rem;
+  color: var(--text-tertiary);
+}
+
+.stat-compact .stat-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stat-compact .stat-change {
+  font-size: 0.875rem;
+}
+
+.stat-change.success {
+  color: var(--accent-success);
+}
+
+.stat-change.danger {
+  color: var(--accent-danger);
+}
+
+/* ========================================
+   INDICATORS SECTION (wie CMC)
+   ======================================== */
+
+.indicators-section {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1.5rem 0;
+}
+
+.indicators-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 1200px) {
+  .indicators-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .indicators-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.indicator-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.2s;
+}
+
+.indicator-card:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+}
+
+.indicator-card.hot-card {
+  background: linear-gradient(135deg, rgba(56, 97, 251, 0.1), rgba(139, 92, 246, 0.1));
+  border-color: var(--accent-primary);
+}
+
+.indicator-label {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.indicator-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.indicator-value.sentiment {
+  font-size: 2rem;
+}
+
+.indicator-change {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.change-percent {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--accent-success);
+}
+
+.change-percent.negative {
+  color: var(--accent-danger);
+}
+
+.mini-chart {
+  color: var(--accent-success);
+  opacity: 0.8;
+}
+
+/* Gauges & Sliders */
+.indicator-gauge {
+  margin-top: 0.75rem;
+}
+
+.gauge-bar {
+  height: 6px;
+  background: var(--bg-primary);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.gauge-fill {
+  height: 100%;
+  background: var(--accent-primary);
+  transition: width 0.5s ease;
+  border-radius: 3px;
+}
+
+.gauge-fill.momentum {
+  background: linear-gradient(90deg, var(--accent-danger), var(--accent-warning), var(--accent-success));
+}
+
+.gauge-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: right;
+}
+
+/* Sentiment Meter */
+.sentiment-bar {
+  margin-top: 0.75rem;
+}
+
+.sentiment-track {
+  position: relative;
+  height: 6px;
+  background: linear-gradient(90deg, var(--accent-danger), var(--accent-warning), var(--accent-success));
+  border-radius: 3px;
+  margin-bottom: 0.5rem;
+}
+
+.sentiment-pointer {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  background: white;
+  border: 2px solid var(--bg-primary);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  transition: left 0.5s ease;
+}
+
+.sentiment-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.6875rem;
+  color: var(--text-tertiary);
+}
+
+/* Party Slider */
+.party-slider {
+  margin-top: 0.75rem;
+}
+
+.party-track {
+  display: flex;
+  height: 32px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.party-left,
+.party-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: width 0.5s ease;
+}
+
+.party-left {
+  background: rgba(59, 130, 246, 0.3);
+  color: #3B82F6;
+}
+
+.party-right {
+  background: rgba(239, 68, 68, 0.3);
+  color: #EF4444;
+}
+
+.party-ratio {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* Hot Topic */
+.hot-content {
+  margin-top: 0.75rem;
+}
+
+.hot-ticker {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  margin-bottom: 0.25rem;
+}
+
+.hot-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* ========================================
+   FILTER BAR
+   ======================================== */
+
+.filter-bar-compact {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.75rem 0;
+}
+
+.filter-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-compact,
+.search-compact {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  transition: all 0.2s;
+}
+
+.filter-compact {
+  min-width: 140px;
+}
+
+.search-compact {
+  flex: 1;
+  max-width: 300px;
+}
+
+.filter-compact:hover,
+.search-compact:hover {
+  border-color: var(--border-hover);
+}
+
+.filter-compact:focus,
+.search-compact:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  background: var(--bg-primary);
+}
+
+.btn-filter {
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-filter:hover {
+  opacity: 0.9;
+}
+
+.btn-reset {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-reset:hover {
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+/* ========================================
+   MAIN TRADES TABLE (wie CMC)
+   ======================================== */
+
+.trades-main {
+  background: var(--bg-primary);
+  padding: 2rem 0 3rem 0;
+}
+
+.section-header-compact {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.section-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.section-subtitle {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  max-height: 650px;
+  overflow-y: auto;
+  margin-top: 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.trades-cmc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.trades-cmc-table thead {
+  position: sticky;
+  top: 0;
+  background: var(--bg-secondary);
+  z-index: 10;
+}
+
+.trades-cmc-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.trades-cmc-table th.text-right {
+  text-align: right;
+}
+
+.trades-cmc-table tbody tr {
+  border-bottom: 1px solid var(--border-color);
+  transition: background 0.15s;
+  cursor: pointer;
+}
+
+.trades-cmc-table tbody tr:hover {
+  background: var(--bg-secondary);
+}
+
+.trades-cmc-table td {
+  padding: 0.875rem 1rem;
+  vertical-align: middle;
+}
+
+/* Rank Column */
+.rank-cell {
+  width: 60px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--text-tertiary);
+}
+
+/* Politician Column */
+.politician-cell {
+  min-width: 260px;
+}
+
+.politician-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.avatar-small {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--bg-tertiary);
+  flex-shrink: 0;
+}
+
+.avatar-small img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+  background: linear-gradient(135deg, #3861FB, #8B5CF6);
+  text-transform: uppercase;
+}
+
+.politician-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.politician-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.politician-name-text {
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.country-flag-small {
+  font-size: 1rem;
+}
+
+.politician-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+
+/* Asset Column */
+.asset-cell {
+  min-width: 220px;
+}
+
+.asset-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.ticker-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ticker-badge {
+  display: inline-flex;
+  padding: 0.2rem 0.5rem;
+  background: rgba(56, 97, 251, 0.1);
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: var(--accent-primary);
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.05em;
+}
+
+.ticker-text {
+  font-weight: 600;
+  color: var(--accent-primary);
+  font-family: 'Courier New', monospace;
+}
+
+.asset-name-text {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Type Column */
+.type-badge {
+  display: inline-flex;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.type-badge.purchase,
+.type-badge.buy {
+  background: rgba(22, 199, 132, 0.15);
+  color: var(--accent-success);
+}
+
+.type-badge.sale,
+.type-badge.sell {
+  background: rgba(234, 57, 67, 0.15);
+  color: var(--accent-danger);
+}
+
+.type-badge.other,
+.type-badge.exchange,
+.type-badge.disclosure {
+  background: rgba(56, 97, 251, 0.15);
+  color: var(--accent-primary);
+}
+
+/* Amount Column */
+.amount-cell-cmc {
+  text-align: right;
+  font-weight: 600;
+}
+
+.amount-main {
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+}
+
+.amount-sub {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  margin-top: 0.125rem;
+}
+
+/* Price Column */
+.price-cell-cmc {
+  text-align: right;
+  min-width: 100px;
+}
+
+.price-value {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+  font-family: 'Courier New', monospace;
+}
+
+/* Date Column */
+.date-cell-cmc {
+  text-align: right;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* Table Footer Actions */
+.table-footer-actions {
+  margin-top: 2rem;
+  text-align: center;
+  padding: 1.5rem 0;
+}
+
+.btn-view-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2rem;
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(56, 97, 251, 0.2);
+}
+
+.btn-view-all:hover {
+  background: #4a6ff7;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(56, 97, 251, 0.3);
+}
+
+/* ========================================
+   MARKETS SECTION (Indizes, Krypto, Rohstoffe)
+   ======================================== */
+
+.markets-section {
+  background: var(--bg-secondary);
+  padding: 3rem 0;
+  border-top: 1px solid var(--border-color);
+}
+
+.market-tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0;
+  justify-content: center;
+}
+
+.market-tab {
+  background: transparent;
+  border: none;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s ease;
+  position: relative;
+  bottom: -2px;
+}
+
+.market-tab:hover {
+  color: var(--accent-primary);
+}
+
+.market-tab.active {
+  color: var(--accent-primary);
+  border-bottom-color: var(--accent-primary);
+}
+
+.market-content {
+  position: relative;
+}
+
+.market-tab-content {
+  display: none;
+}
+
+.market-tab-content.active {
+  display: block;
+}
+
+.market-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.market-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.25rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.market-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+  border-color: var(--accent-primary);
+}
+
+.market-card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.market-icon {
+  font-size: 2rem;
+}
+
+.market-info {
+  flex: 1;
+}
+
+.market-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.market-symbol {
+  font-size: 0.8125rem;
+  color: var(--text-tertiary);
+  font-family: 'Courier New', monospace;
+}
+
+.market-price {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+  font-family: 'Courier New', monospace;
+}
+
+.market-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.market-change.positive {
+  background: rgba(22, 199, 132, 0.15);
+  color: var(--accent-success);
+}
+
+.market-change.negative {
+  background: rgba(234, 57, 67, 0.15);
+  color: var(--accent-danger);
+}
+
+.market-stats {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.market-stat {
+  flex: 1;
+}
+
+.market-stat-label {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.market-stat-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* ========================================
+   CHART MODAL (TradingView)
+   ======================================== */
+
+.chart-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+}
+
+.chart-modal.active {
+  display: block;
+}
+
+.chart-modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
+}
+
+.chart-modal-content {
+  position: relative;
+  width: 95%;
+  max-width: 1400px;
+  height: 90vh;
+  margin: 2.5vh auto;
+  background: var(--card-bg);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 10000;
+}
+
+.chart-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  gap: 2rem;
+}
+
+.chart-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.chart-timeframe-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  flex: 1;
+  justify-content: center;
+}
+
+.tf-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tf-btn:hover {
+  background: var(--border-color);
+  color: var(--text-primary);
+}
+
+.tf-btn.active {
+  background: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+}
+
+#chartModalSymbol {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  font-family: 'Courier New', monospace;
+}
+
+#chartModalName {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.chart-modal-close {
+  background: transparent;
+  border: none;
+  font-size: 2rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.chart-modal-close:hover {
+  background: var(--border-color);
+  color: var(--text-primary);
+}
+
+.chart-modal-body {
+  flex: 1;
+  padding: 0;
+  overflow: hidden;
+  background: #131722;
+  min-height: 600px;
+}
+
+.tradingview-widget-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+#tradingview_chart {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 600px;
+}
+
+/* ========================================
+   FOOTER
+   ======================================== */
+
+.footer-compact {
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  padding: 1.5rem 0;
+  margin-top: 2rem;
+}
+
+.footer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8125rem;
+  color: var(--text-tertiary);
+}
+
+.footer-right {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.footer-right a:hover {
+  color: var(--accent-primary);
+}
+
+/* ========================================
+   LOADING & ERROR STATES
+   ======================================== */
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+}
+
+.error-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--accent-danger);
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 768px) {
+  .nav-main {
+    display: none;
+  }
+  
+  .stats-compact {
+    gap: 1rem;
+  }
+  
+  .trades-cmc-table {
+    font-size: 0.8125rem;
+  }
+  
+  .trades-cmc-table th,
+  .trades-cmc-table td {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .politician-cell {
+    min-width: 180px;
+  }
+  
+  .asset-cell {
+    min-width: 160px;
+  }
+}
+
+/* ========================================
+   UTILITIES
+   ======================================== */
+
+.text-success {
+  color: var(--accent-success);
+}
+
+.text-danger {
+  color: var(--accent-danger);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}

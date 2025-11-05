@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Follow the Money - Verfolgen Sie die Investitionen von Politikern aus 18 Ländern weltweit">
+    <title>Follow the Money | Politiker Trading Tracker</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- TradingView Widget Library -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header-compact">
+        <div class="container-fluid">
+            <div class="header-row">
+                <div class="logo-compact">
+                    <span class="logo-icon">💰</span>
+                    <span class="logo-text">Follow the Money</span>
+                </div>
+                <nav class="nav-main">
+                    <a href="#" class="nav-link active">Trades</a>
+                    <a href="#" class="nav-link">Markets</a>
+                    <a href="#" class="nav-link">Politicians</a>
+                    <a href="#" class="nav-link">Blog</a>
+                </nav>
+                <div class="header-actions-compact">
+                    <button class="theme-toggle-compact" id="themeToggle">
+                        <span id="themeIcon">🌙</span>
+                    </button>
+                    <div class="api-status-compact">
+                        <span class="status-dot-compact" id="statusDot"></span>
+                        <span id="statusText">API</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- TradingView Indicators (Echte Marktdaten) -->
+    <section class="indicators-section">
+        <div class="container-fluid">
+            <div class="indicators-grid">
+                <!-- Market Overview Widget -->
+                <div class="indicator-card tradingview-widget">
+                    <div class="indicator-label">Market Overview</div>
+                    <div class="tradingview-widget-container" id="marketOverview">
+                        <div class="tradingview-widget-container__widget"></div>
+                    </div>
+                </div>
+                
+                <!-- Top Symbols (Politiker-Favoriten) -->
+                <div class="indicator-card tradingview-widget">
+                    <div class="indicator-label">Top Politician Stocks</div>
+                    <div class="tradingview-widget-container" id="topSymbols">
+                        <div class="tradingview-widget-container__widget"></div>
+                    </div>
+                </div>
+                
+                <!-- Technical Analysis -->
+                <div class="indicator-card tradingview-widget">
+                    <div class="indicator-label">Technical Analysis</div>
+                    <div class="tradingview-widget-container" id="technicalAnalysis">
+                        <div class="tradingview-widget-container__widget"></div>
+                    </div>
+                </div>
+                
+                <!-- Market Heatmap -->
+                <div class="indicator-card tradingview-widget wide">
+                    <div class="indicator-label">Stock Heatmap</div>
+                    <div class="tradingview-widget-container" id="stockHeatmap">
+                        <div class="tradingview-widget-container__widget"></div>
+                    </div>
+                </div>
+                
+                <!-- Economic Calendar -->
+                <div class="indicator-card tradingview-widget wide">
+                    <div class="indicator-label">Economic Calendar</div>
+                    <div class="tradingview-widget-container" id="economicCalendar">
+                        <div class="tradingview-widget-container__widget"></div>
+                    </div>
+                </div>
+                
+                <!-- Screener Widget -->
+                <div class="indicator-card tradingview-widget extra-wide">
+                    <div class="indicator-label">Stock Screener (Politiker-Portfolio)</div>
+                    <div class="tradingview-widget-container" id="stockScreener">
+                        <div class="tradingview-widget-container__widget"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filter Bar (wie CMC) -->
+    <section class="filter-bar-compact">
+        <div class="container-fluid">
+            <div class="filter-row">
+                <select id="countryFilter" class="filter-compact">
+                    <option value="">Alle Länder</option>
+                </select>
+                <select id="typeFilter" class="filter-compact">
+                    <option value="">Trade Type</option>
+                    <option value="purchase">Purchase</option>
+                    <option value="sale">Sale</option>
+                    <option value="other">Other</option>
+                </select>
+                <input type="text" id="searchInput" class="search-compact" placeholder="Politiker oder Ticker suchen...">
+                <button class="btn-filter" id="applyFilters">Filter</button>
+                <button class="btn-reset" id="resetFilters">Reset</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Trades Table (Top 15 Recent Trades) -->
+    <section class="trades-main">
+        <div class="container-fluid">
+            <div class="section-header-compact">
+                <h2 class="section-title">🔥 Neueste Politiker-Trades</h2>
+                <div class="section-subtitle">Live-Tracking von Käufen und Verkäufen aus 18 Ländern</div>
+            </div>
+            <div class="table-wrapper" id="tradesContainer">
+                <div class="loading-state">Lade Trades...</div>
+            </div>
+            <div class="table-footer-actions">
+                <button class="btn-view-all" id="viewAllTrades">
+                    Alle <span id="totalTradesCount">632</span> Trades anzeigen →
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Global Markets Section (Indizes, Krypto, Rohstoffe) -->
+    <section class="markets-section">
+        <div class="container-fluid">
+            <div class="section-header-compact">
+                <h2 class="section-title">📈 Globale Märkte</h2>
+                <div class="section-subtitle">Börsen-Indizes, Kryptowährungen & Rohstoffe - Live-Daten</div>
+            </div>
+            
+            <!-- Market Tabs -->
+            <div class="market-tabs">
+                <button class="market-tab active" data-tab="indices">🏛️ Börsen-Indizes</button>
+                <button class="market-tab" data-tab="crypto">₿ Krypto (Top 30)</button>
+                <button class="market-tab" data-tab="commodities">🛢️ Rohstoffe</button>
+            </div>
+            
+            <!-- Market Content -->
+            <div class="market-content">
+                <!-- Börsen-Indizes -->
+                <div class="market-tab-content active" id="tab-indices">
+                    <div class="market-grid" id="indicesGrid">
+                        <div class="loading-state">Lade Börsen-Indizes...</div>
+                    </div>
+                </div>
+                
+                <!-- Krypto -->
+                <div class="market-tab-content" id="tab-crypto">
+                    <div class="market-grid" id="cryptoGrid">
+                        <div class="loading-state">Lade Kryptowährungen...</div>
+                    </div>
+                </div>
+                
+                <!-- Rohstoffe -->
+                <div class="market-tab-content" id="tab-commodities">
+                    <div class="market-grid" id="commoditiesGrid">
+                        <div class="loading-state">Lade Rohstoffe...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer-compact">
+        <div class="container-fluid">
+            <div class="footer-row">
+                <div class="footer-left">
+                    © 2025 Follow the Money • Daten von Capitol Trades, Bundestag & mehr
+                </div>
+                <div class="footer-right">
+                    <a href="/health">API Status</a>
+                    <a href="https://github.com/Cango2911/politiker-trader-daten-scraper-global">GitHub</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- TradingView Chart Modal -->
+    <div class="chart-modal" id="chartModal">
+        <div class="chart-modal-backdrop" id="chartModalBackdrop"></div>
+        <div class="chart-modal-content">
+            <div class="chart-modal-header">
+                <div class="chart-modal-title">
+                    <span id="chartModalSymbol">BTC/USD</span>
+                    <span id="chartModalName">Bitcoin</span>
+                </div>
+                <div class="chart-timeframe-buttons">
+                    <button class="tf-btn" data-tf="1">1m</button>
+                    <button class="tf-btn" data-tf="5">5m</button>
+                    <button class="tf-btn" data-tf="15">15m</button>
+                    <button class="tf-btn" data-tf="30">30m</button>
+                    <button class="tf-btn" data-tf="60">1h</button>
+                    <button class="tf-btn" data-tf="180">3h</button>
+                    <button class="tf-btn" data-tf="360">6h</button>
+                    <button class="tf-btn" data-tf="720">12h</button>
+                    <button class="tf-btn active" data-tf="D">1D</button>
+                    <button class="tf-btn" data-tf="3D">3D</button>
+                    <button class="tf-btn" data-tf="W">1W</button>
+                    <button class="tf-btn" data-tf="M">1M</button>
+                </div>
+                <button class="chart-modal-close" id="chartModalClose">✕</button>
+            </div>
+            <div class="chart-modal-body">
+                <!-- Lightweight Charts Container -->
+                <div id="tradingview_chart"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TradingView Lightweight Charts Library -->
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <!-- TradingView Widget Script -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>
