@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinanceHub | Global Markets & Political Insights</title>
+    <link rel="stylesheet" href="/css/style-new.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body class="dark-theme">
+    <!-- Header -->
+    <header class="main-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <h1 class="logo">
+                        <span class="logo-icon">📊</span>
+                        <span class="logo-text">Finance<span class="logo-highlight">Hub</span></span>
+                    </h1>
+                    <p class="tagline">Global Markets • Political Insights • Real-Time Data</p>
+                </div>
+                
+                <nav class="main-nav">
+                    <a href="/" class="nav-link active">Home</a>
+                    <a href="/markets" class="nav-link">Markets</a>
+                    <a href="/news" class="nav-link">News</a>
+                    <a href="/politics" class="nav-link">Politics</a>
+                    <a href="/politician-trades" class="nav-link bonus-link">
+                        <span class="bonus-badge">BONUS</span>
+                        Politician Trades
+                    </a>
+                    <a href="/blog" class="nav-link">Blog</a>
+                </nav>
+                
+                <div class="header-actions">
+                    <button class="theme-toggle" id="themeToggle" aria-label="Toggle Theme">
+                        <span class="theme-icon">🌙</span>
+                    </button>
+                    <button class="btn-primary">Subscribe</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Market Ticker Bar -->
+    <div class="market-ticker">
+        <div class="container">
+            <div class="ticker-items" id="marketTickerItems">
+                <div class="ticker-item">
+                    <span class="ticker-label">Loading markets...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Slider -->
+    <section class="hero-slider">
+        <div class="container">
+            <div class="slider-wrapper">
+                <div class="slides" id="heroSlides">
+                    <!-- Slide 1 -->
+                    <div class="slide active">
+                        <div class="slide-content">
+                            <div class="slide-category">Breaking News</div>
+                            <h2 class="slide-title">Bitcoin Surges Past $103K as Institutional Demand Soars</h2>
+                            <p class="slide-description">Major investment firms increase crypto holdings as regulatory clarity improves worldwide</p>
+                            <a href="#" class="slide-link">Read Analysis →</a>
+                        </div>
+                        <div class="slide-image">
+                            <div class="placeholder-image">📈</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Slide 2 -->
+                    <div class="slide">
+                        <div class="slide-content">
+                            <div class="slide-category">Political Economy</div>
+                            <h2 class="slide-title">Global Trade Tensions: How Politicians' Portfolios Reveal Market Direction</h2>
+                            <p class="slide-description">Exclusive analysis of trading patterns among legislators across 18 countries</p>
+                            <a href="#" class="slide-link">View Report →</a>
+                        </div>
+                        <div class="slide-image">
+                            <div class="placeholder-image">🌍</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Slide 3 -->
+                    <div class="slide">
+                        <div class="slide-content">
+                            <div class="slide-category">Market Insight</div>
+                            <h2 class="slide-title">AI Revolution: Tech Giants Lead Market Rally</h2>
+                            <p class="slide-description">NVIDIA, Microsoft, and Google drive unprecedented market growth with AI innovation</p>
+                            <a href="#" class="slide-link">Deep Dive →</a>
+                        </div>
+                        <div class="slide-image">
+                            <div class="placeholder-image">🤖</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="slider-controls">
+                    <button class="slider-btn prev" id="prevSlide">‹</button>
+                    <div class="slider-dots" id="sliderDots"></div>
+                    <button class="slider-btn next" id="nextSlide">›</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Market Overview Table -->
+    <section class="market-overview">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Live Market Overview</h2>
+                <div class="section-actions">
+                    <button class="filter-btn active" data-category="all">All</button>
+                    <button class="filter-btn" data-category="indices">Indices</button>
+                    <button class="filter-btn" data-category="crypto">Crypto</button>
+                    <button class="filter-btn" data-category="commodities">Commodities</button>
+                    <button class="filter-btn" data-category="forex">Forex</button>
+                </div>
+            </div>
+            
+            <div class="market-table-wrapper">
+                <table class="market-table" id="marketTable">
+                    <thead>
+                        <tr>
+                            <th>Market</th>
+                            <th>Price</th>
+                            <th>Change</th>
+                            <th>Change %</th>
+                            <th>Volume</th>
+                            <th>Chart (7D)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="marketTableBody">
+                        <tr>
+                            <td colspan="6" class="loading-cell">Loading market data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Market Sentiment -->
+    <section class="market-sentiment">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Market Sentiment & Indicators</h2>
+                <div class="region-selector">
+                    <button class="region-btn active" data-region="global">🌍 Global</button>
+                    <button class="region-btn" data-region="americas">🇺🇸 Americas</button>
+                    <button class="region-btn" data-region="europe">🇪🇺 Europe</button>
+                    <button class="region-btn" data-region="asia">🇨🇳 Asia</button>
+                </div>
+            </div>
+            
+            <div class="sentiment-grid">
+                <!-- Fear & Greed Index -->
+                <div class="sentiment-card">
+                    <div class="card-header">
+                        <h3>Fear & Greed Index</h3>
+                        <span class="info-icon">ℹ️</span>
+                    </div>
+                    <div class="gauge-container">
+                        <div class="gauge" id="fearGreedGauge">
+                            <div class="gauge-value">65</div>
+                            <div class="gauge-label">Greed</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Market Heatmap Preview -->
+                <div class="sentiment-card heatmap-card">
+                    <div class="card-header">
+                        <h3>Sector Performance</h3>
+                        <a href="#" class="view-full">View Full Heatmap →</a>
+                    </div>
+                    <div class="heatmap-grid" id="sectorHeatmap">
+                        <div class="heatmap-item positive">
+                            <div class="heatmap-label">Tech</div>
+                            <div class="heatmap-value">+3.2%</div>
+                        </div>
+                        <div class="heatmap-item positive">
+                            <div class="heatmap-label">Finance</div>
+                            <div class="heatmap-value">+1.8%</div>
+                        </div>
+                        <div class="heatmap-item negative">
+                            <div class="heatmap-label">Energy</div>
+                            <div class="heatmap-value">-1.4%</div>
+                        </div>
+                        <div class="heatmap-item positive">
+                            <div class="heatmap-label">Healthcare</div>
+                            <div class="heatmap-value">+2.1%</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Market Stats -->
+                <div class="sentiment-card stats-card">
+                    <div class="card-header">
+                        <h3>Market Statistics</h3>
+                    </div>
+                    <div class="stats-list">
+                        <div class="stat-item">
+                            <span class="stat-label">Advancing</span>
+                            <span class="stat-value positive">2,341</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Declining</span>
+                            <span class="stat-value negative">1,123</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">52-Week Highs</span>
+                            <span class="stat-value">156</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">52-Week Lows</span>
+                            <span class="stat-value">43</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Blog/News Section -->
+    <section class="news-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Latest Analysis & Insights</h2>
+                <a href="/blog" class="view-all">View All Articles →</a>
+            </div>
+            
+            <div class="news-grid" id="newsGrid">
+                <!-- News Card 1 -->
+                <article class="news-card featured">
+                    <div class="news-image">
+                        <div class="placeholder-image">💼</div>
+                        <span class="news-badge">Featured</span>
+                    </div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="news-category">Political Economy</span>
+                            <span class="news-date">2 hours ago</span>
+                        </div>
+                        <h3 class="news-title">How Politician Trading Patterns Predict Market Movements</h3>
+                        <p class="news-excerpt">Deep dive into the correlation between legislative trading and market trends across 18 countries...</p>
+                        <a href="#" class="news-link">Read More →</a>
+                    </div>
+                </article>
+                
+                <!-- News Card 2 -->
+                <article class="news-card">
+                    <div class="news-image">
+                        <div class="placeholder-image">🪙</div>
+                    </div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="news-category">Crypto</span>
+                            <span class="news-date">5 hours ago</span>
+                        </div>
+                        <h3 class="news-title">Ethereum ETFs See Record Inflows</h3>
+                        <p class="news-excerpt">Institutional adoption accelerates as new regulatory framework provides clarity...</p>
+                        <a href="#" class="news-link">Read More →</a>
+                    </div>
+                </article>
+                
+                <!-- News Card 3 -->
+                <article class="news-card">
+                    <div class="news-image">
+                        <div class="placeholder-image">🏭</div>
+                    </div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="news-category">Energy</span>
+                            <span class="news-date">1 day ago</span>
+                        </div>
+                        <h3 class="news-title">Oil Markets React to OPEC+ Decision</h3>
+                        <p class="news-excerpt">Production cuts extended as global demand outlook remains uncertain...</p>
+                        <a href="#" class="news-link">Read More →</a>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section class="download-section">
+        <div class="container">
+            <div class="download-card">
+                <div class="download-content">
+                    <h2 class="download-title">Get Daily Market Reports</h2>
+                    <p class="download-description">Subscribe to receive comprehensive market analysis, politician trading data, and expert insights delivered to your inbox</p>
+                    <form class="newsletter-form" id="newsletterForm">
+                        <input type="email" placeholder="Enter your email" class="newsletter-input" required>
+                        <button type="submit" class="btn-primary">Subscribe & Download</button>
+                    </form>
+                    <p class="download-note">📊 Includes PDF/CSV market data • 🔒 Privacy guaranteed • ✉️ Unsubscribe anytime</p>
+                </div>
+                <div class="download-preview">
+                    <div class="preview-icon">📄</div>
+                    <p>Sample Report Preview</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 class="footer-title">FinanceHub</h3>
+                    <p class="footer-description">Your trusted source for global market data, political insights, and financial analysis.</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h4 class="footer-heading">Markets</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Indices</a></li>
+                        <li><a href="#">Cryptocurrencies</a></li>
+                        <li><a href="#">Commodities</a></li>
+                        <li><a href="#">Forex</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4 class="footer-heading">Resources</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">API Documentation</a></li>
+                        <li><a href="#">Market Calendar</a></li>
+                        <li><a href="#">Educational Content</a></li>
+                        <li><a href="#">Politician Trades</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4 class="footer-heading">Company</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 FinanceHub. All rights reserved.</p>
+                <div class="footer-social">
+                    <a href="#">Twitter</a>
+                    <a href="#">LinkedIn</a>
+                    <a href="#">GitHub</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/js/app-new.js"></script>
+</body>
+</html>
+
