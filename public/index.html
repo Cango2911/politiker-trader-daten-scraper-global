@@ -198,17 +198,31 @@
                     <span id="chartModalSymbol">BTC/USD</span>
                     <span id="chartModalName">Bitcoin</span>
                 </div>
+                <div class="chart-timeframe-buttons">
+                    <button class="tf-btn" data-tf="1">1m</button>
+                    <button class="tf-btn" data-tf="5">5m</button>
+                    <button class="tf-btn" data-tf="15">15m</button>
+                    <button class="tf-btn" data-tf="30">30m</button>
+                    <button class="tf-btn" data-tf="60">1h</button>
+                    <button class="tf-btn" data-tf="180">3h</button>
+                    <button class="tf-btn" data-tf="360">6h</button>
+                    <button class="tf-btn" data-tf="720">12h</button>
+                    <button class="tf-btn active" data-tf="D">1D</button>
+                    <button class="tf-btn" data-tf="3D">3D</button>
+                    <button class="tf-btn" data-tf="W">1W</button>
+                    <button class="tf-btn" data-tf="M">1M</button>
+                </div>
                 <button class="chart-modal-close" id="chartModalClose">✕</button>
             </div>
             <div class="chart-modal-body">
-                <!-- TradingView Advanced Chart Widget -->
-                <div class="tradingview-widget-container" id="tradingviewChartContainer">
-                    <div id="tradingview_chart"></div>
-                </div>
+                <!-- Lightweight Charts Container -->
+                <div id="tradingview_chart"></div>
             </div>
         </div>
     </div>
 
+    <!-- TradingView Lightweight Charts Library -->
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
     <!-- TradingView Widget Script -->
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script src="/js/app.js"></script>

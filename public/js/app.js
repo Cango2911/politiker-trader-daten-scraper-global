@@ -214,6 +214,22 @@ function setupEventListeners() {
     chartModalBackdrop.addEventListener('click', closeChartModal);
   }
   
+  // Timeframe buttons
+  document.querySelectorAll('.tf-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tf = btn.dataset.tf;
+      
+      // Update active button
+      document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      // Reload chart with new timeframe
+      if (currentSymbol) {
+        loadLightweightChart(currentSymbol, tf);
+      }
+    });
+  });
+  
   // ESC key to close modal
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
@@ -850,8 +866,12 @@ function renderMarketCards(containerId, items, type) {
 }
 
 // ========================================
-// CHART MODAL
+// CHART MODAL (Lightweight Charts)
 // ========================================
+
+let currentChart = null;
+let currentSymbol = null;
+let currentTimeframe = 'D';
 
 function openChartModal(symbol, name) {
   const modal = document.getElementById('chartModal');
@@ -861,11 +881,15 @@ function openChartModal(symbol, name) {
   symbolEl.textContent = symbol;
   nameEl.textContent = name;
   
+  currentSymbol = symbol;
+  
   modal.classList.add('active');
   document.body.style.overflow = 'hidden';
   
-  // Load TradingView Chart
-  loadTradingViewChart(symbol);
+  // Load Chart mit Lightweight Charts
+  setTimeout(() => {
+    loadLightweightChart(symbol, 'D');
+  }, 100);
 }
 
 function closeChartModal() {
@@ -873,27 +897,136 @@ function closeChartModal() {
   modal.classList.remove('active');
   document.body.style.overflow = 'auto';
   
-  // Clear chart
+  // Destroy chart
+  if (currentChart) {
+    currentChart.remove();
+    currentChart = null;
+  }
+  
   document.getElementById('tradingview_chart').innerHTML = '';
 }
 
-function loadTradingViewChart(symbol) {
-  const chartContainer = document.getElementById('tradingview_chart');
+async function loadLightweightChart(symbol, timeframe) {
+  const container = document.getElementById('tradingview_chart');
+  container.innerHTML = ''; // Clear
   
-  // Konvertiere Symbol für TradingView URL (z.B. "TVC:SPX" -> "SPX")
-  const cleanSymbol = symbol.replace(':', '%3A');
+  // Destroy old chart
+  if (currentChart) {
+    currentChart.remove();
+  }
   
-  // Erstelle TradingView Advanced Chart mit iframe
-  const theme = document.body.classList.contains('light-theme') ? 'light' : 'dark';
+  // Create chart
+  const chart = LightweightCharts.createChart(container, {
+    width: container.clientWidth,
+    height: container.clientHeight || 600,
+    layout: {
+      background: { color: '#1e222d' },
+      textColor: '#d1d4dc',
+    },
+    grid: {
+      vertLines: { color: '#2B2B43' },
+      horzLines: { color: '#2B2B43' },
+    },
+    crosshair: {
+      mode: LightweightCharts.CrosshairMode.Normal,
+    },
+    timeScale: {
+      borderColor: '#2B2B43',
+      timeVisible: true,
+      secondsVisible: false,
+    },
+    rightPriceScale: {
+      borderColor: '#2B2B43',
+    },
+  });
   
-  chartContainer.innerHTML = `
-    <iframe 
-      src="https://www.tradingview.com/widgetembed/?frameElementId=tradingview_chart&symbol=${cleanSymbol}&interval=D&hidesidetoolbar=0&saveimage=1&toolbarbg=f1f3f6&studies=RSI%40tv-basicstudies%1FMACD%40tv-basicstudies%1FVolume%40tv-basicstudies%1FBB%40tv-basicstudies&theme=${theme}&style=1&timezone=Europe%2FBerlin&studies_overrides=%7B%7D&overrides=%7B%7D&enabled_features=%5B%22study_templates%22%2C%22create_volume_indicator_by_default%22%5D&disabled_features=%5B%5D&locale=de_DE&utm_source=api.srv1105698.hstgr.cloud&utm_medium=widget&utm_campaign=chart&utm_term=${cleanSymbol}" 
-      style="width: 100%; height: 100%; margin: 0; padding: 0; border: none;"
-      frameborder="0"
-      allowtransparency="true"
-      scrolling="no"
-      allowfullscreen
-    ></iframe>
-  `;
+  currentChart = chart;
+  currentTimeframe = timeframe;
+  
+  // Add Candlestick Series
+  const candleSeries = chart.addCandlestickSeries({
+    upColor: '#16c784',
+    downColor: '#ea3943',
+    borderUpColor: '#16c784',
+    borderDownColor: '#ea3943',
+    wickUpColor: '#16c784',
+    wickDownColor: '#ea3943',
+  });
+  
+  // Generate Sample Data (In Production: Fetch from API)
+  const data = generateSampleCandleData(200, timeframe);
+  candleSeries.setData(data);
+  
+  // Add Volume Series
+  const volumeSeries = chart.addHistogramSeries({
+    color: '#26a69a',
+    priceFormat: {
+      type: 'volume',
+    },
+    priceScaleId: '',
+    scaleMargins: {
+      top: 0.8,
+      bottom: 0,
+    },
+  });
+  
+  const volumeData = data.map(d => ({
+    time: d.time,
+    value: Math.random() * 1000000,
+    color: d.close > d.open ? '#16c78440' : '#ea394340',
+  }));
+  volumeSeries.setData(volumeData);
+  
+  // Resize handler
+  window.addEventListener('resize', () => {
+    if (currentChart && container.clientWidth > 0) {
+      currentChart.resize(container.clientWidth, container.clientHeight || 600);
+    }
+  });
+  
+  chart.timeScale().fitContent();
+}
+
+function generateSampleCandleData(count, timeframe) {
+  const data = [];
+  let basePrice = 100;
+  let time = Math.floor(Date.now() / 1000) - (count * getTimeframeSeconds(timeframe));
+  
+  for (let i = 0; i < count; i++) {
+    const open = basePrice + (Math.random() - 0.5) * 5;
+    const close = open + (Math.random() - 0.5) * 3;
+    const high = Math.max(open, close) + Math.random() * 2;
+    const low = Math.min(open, close) - Math.random() * 2;
+    
+    data.push({
+      time: time,
+      open: parseFloat(open.toFixed(2)),
+      high: parseFloat(high.toFixed(2)),
+      low: parseFloat(low.toFixed(2)),
+      close: parseFloat(close.toFixed(2)),
+    });
+    
+    basePrice = close;
+    time += getTimeframeSeconds(timeframe);
+  }
+  
+  return data;
+}
+
+function getTimeframeSeconds(tf) {
+  const mapping = {
+    '1': 60,
+    '5': 300,
+    '15': 900,
+    '30': 1800,
+    '60': 3600,
+    '180': 10800,
+    '360': 21600,
+    '720': 43200,
+    'D': 86400,
+    '3D': 259200,
+    'W': 604800,
+    'M': 2592000,
+  };
+  return mapping[tf] || 86400;
 }

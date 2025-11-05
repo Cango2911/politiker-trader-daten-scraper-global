@@ -1027,12 +1027,45 @@ a:hover {
   padding: 1.5rem 2rem;
   border-bottom: 1px solid var(--border-color);
   background: var(--bg-secondary);
+  gap: 2rem;
 }
 
 .chart-modal-title {
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex-shrink: 0;
+}
+
+.chart-timeframe-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  flex: 1;
+  justify-content: center;
+}
+
+.tf-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tf-btn:hover {
+  background: var(--border-color);
+  color: var(--text-primary);
+}
+
+.tf-btn.active {
+  background: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
 }
 
 #chartModalSymbol {
