@@ -398,6 +398,7 @@ function renderCMCTable(trades) {
           <th>Asset</th>
           <th>Typ</th>
           <th class="text-right">Betrag</th>
+          <th class="text-right">Preis</th>
           <th class="text-right">Datum</th>
         </tr>
       </thead>
@@ -408,6 +409,22 @@ function renderCMCTable(trades) {
           const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
           const country = trade.country || 'unknown';
           const party = trade.politician?.party || '';
+          
+          // Ticker anzeigen (falls vorhanden, sonst leer)
+          const ticker = trade.trade?.ticker;
+          const displayTicker = (ticker && ticker !== 'N/A') ? ticker : '';
+          
+          // Asset Name
+          const assetName = trade.trade?.assetName || 'Unbekannt';
+          
+          // Price formatieren
+          const price = trade.trade?.price;
+          const displayPrice = price ? `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-';
+          
+          // Size/Amount
+          const size = trade.trade?.size || '';
+          const sizeMin = trade.trade?.sizeMin;
+          const displayAmount = sizeMin ? formatAmount(sizeMin) : (size || '-');
           
           return `
             <tr class="trade-row-cmc" data-trade-id="${trade._id}">
@@ -431,18 +448,19 @@ function renderCMCTable(trades) {
               </td>
               <td class="asset-cell">
                 <div class="asset-row">
-                  <div class="ticker-row">
-                    <span class="ticker-text">${trade.trade?.ticker || 'N/A'}</span>
-                  </div>
-                  <div class="asset-name-text">${trade.trade?.assetName || 'Unbekannt'}</div>
+                  ${displayTicker ? `<div class="ticker-badge">${displayTicker}</div>` : ''}
+                  <div class="asset-name-text">${assetName}</div>
                 </div>
               </td>
               <td class="type-cell">
                 <span class="type-badge ${(trade.trade?.type || '').toLowerCase()}">${formatTradeType(trade.trade?.type)}</span>
               </td>
               <td class="amount-cell-cmc text-right">
-                <div class="amount-main">${formatAmount(trade.trade?.sizeMin)}</div>
-                ${trade.trade?.size ? `<div class="amount-sub">${trade.trade.size}</div>` : ''}
+                <div class="amount-main">${displayAmount}</div>
+                ${size && size !== displayAmount ? `<div class="amount-sub">${size}</div>` : ''}
+              </td>
+              <td class="price-cell-cmc text-right">
+                <span class="price-value">${displayPrice}</span>
               </td>
               <td class="date-cell-cmc text-right">${formatDate(trade.dates?.transaction)}</td>
             </tr>
