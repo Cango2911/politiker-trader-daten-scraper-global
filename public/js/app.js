@@ -1,424 +1,546 @@
-// ============================================
-// Follow the Money - Main JavaScript
-// ============================================
+/**
+ * FinanceHub - Modern Financial Platform
+ * Main JavaScript Application
+ */
 
-let currentPage = 1;
-const PAGE_SIZE = 20;
-let allTrades = [];
-let filteredTrades = [];
+// ===================================
+// Global Configuration
+// ===================================
+const CONFIG = {
+    API_BASE_URL: window.location.origin + '/api',
+    ALPHA_VANTAGE_KEY: 'demo', // Will be replaced with actual key from backend
+    UPDATE_INTERVAL: 60000, // 60 seconds
+    SLIDER_INTERVAL: 5000, // 5 seconds
+};
 
-// ============================================
-// INITIALIZE
-// ============================================
-document.addEventListener('DOMContentLoaded', () => {
-    initSlider();
-    initThemeToggle();
-    loadMarketTicker();
-    loadPoliticianTrades();
-    initFilters();
-    initDownload();
-    initNewsletter();
-    
-    // Auto-refresh market data every 60 seconds
-    setInterval(loadMarketTicker, 60000);
-});
-
-// ============================================
-// SLIDER (Swiper)
-// ============================================
-function initSlider() {
-    new Swiper('.breaking-news-slider', {
-        slidesPerView: 1,
-        spaceBetween: 0,
-        loop: true,
-        autoplay: {
-            delay: 5000,
-            disableOnInteraction: false,
-        },
-        pagination: {
-            el: '.swiper-pagination',
-            clickable: true,
-        },
-        navigation: {
-            nextEl: '.swiper-button-next',
-            prevEl: '.swiper-button-prev',
-        },
-    });
-}
-
-// ============================================
-// MARKET TICKER BAR
-// ============================================
-async function loadMarketTicker() {
-    const symbols = [
-        { id: 'SPX', name: 'S&P 500', type: 'index' },
-        { id: 'DJI', name: 'Dow Jones', type: 'index' },
-        { id: 'DAX', name: 'DAX', type: 'index' },
-        { id: 'BTC', name: 'Bitcoin', type: 'crypto' },
-        { id: 'EUR/USD', name: 'EUR/USD', type: 'forex' },
-        { id: 'OIL', name: 'Brent Crude', type: 'commodity' }
-    ];
-
-    // For demo: Fetch from CoinGecko for crypto, simulate for others
-    for (const symbol of symbols) {
-        const tickerEl = document.querySelector(`.ticker-item[data-symbol="${symbol.id}"]`);
-        if (!tickerEl) continue;
-
-        if (symbol.type === 'crypto') {
-            try {
-                const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true');
-                const data = await response.json();
-                const price = data.bitcoin.usd;
-                const change = data.bitcoin.usd_24h_change;
-
-                tickerEl.querySelector('.ticker-value').textContent = `$${price.toLocaleString()}`;
-                const changeEl = tickerEl.querySelector('.ticker-change');
-                changeEl.textContent = `${change > 0 ? '+' : ''}${change.toFixed(2)}%`;
-                changeEl.className = `ticker-change ${change > 0 ? 'positive' : 'negative'}`;
-            } catch (error) {
-                console.error('Error fetching crypto data:', error);
-            }
-        } else {
-            // Simulate other market data
-            const price = getSimulatedPrice(symbol.id);
-            const change = (Math.random() * 4 - 2).toFixed(2);
-
-            tickerEl.querySelector('.ticker-value').textContent = symbol.type === 'forex' ? price.toFixed(4) : price.toLocaleString();
-            const changeEl = tickerEl.querySelector('.ticker-change');
-            changeEl.textContent = `${change > 0 ? '+' : ''}${change}%`;
-            changeEl.className = `ticker-change ${change > 0 ? 'positive' : 'negative'}`;
-        }
+// ===================================
+// Theme Management
+// ===================================
+class ThemeManager {
+    constructor() {
+        this.theme = localStorage.getItem('theme') || 'light';
+        this.init();
     }
-}
 
-function getSimulatedPrice(symbol) {
-    const prices = {
-        'SPX': 4550 + Math.random() * 100,
-        'DJI': 35400 + Math.random() * 200,
-        'DAX': 16450 + Math.random() * 100,
-        'EUR/USD': 1.08 + Math.random() * 0.02,
-        'OIL': 75 + Math.random() * 5
-    };
-    return prices[symbol] || 100;
-}
+    init() {
+        this.applyTheme();
+        document.getElementById('themeToggle')?.addEventListener('click', () => this.toggle());
+    }
 
-// ============================================
-// POLITICIAN TRADES
-// ============================================
-async function loadPoliticianTrades() {
-    try {
-        const response = await fetch('/api/trades?limit=100');
-        const data = await response.json();
+    toggle() {
+        this.theme = this.theme === 'light' ? 'dark' : 'light';
+        this.applyTheme();
+        localStorage.setItem('theme', this.theme);
+    }
+
+    applyTheme() {
+        document.body.classList.toggle('dark-theme', this.theme === 'dark');
+        document.body.classList.toggle('light-theme', this.theme === 'light');
         
-        if (data.success && data.data) {
-            allTrades = data.data;
-            filteredTrades = [...allTrades];
-            renderTrades();
+        const icon = document.querySelector('.theme-icon');
+        if (icon) {
+            icon.textContent = this.theme === 'dark' ? '☀️' : '🌙';
         }
-    } catch (error) {
-        console.error('Error loading trades:', error);
-        document.getElementById('tradesTableBody').innerHTML = `
-            <tr>
-                <td colspan="8" class="loading-cell">Error loading trades. Please try again.</td>
-            </tr>
-        `;
     }
 }
 
-function renderTrades() {
-    const tbody = document.getElementById('tradesTableBody');
-    const start = (currentPage - 1) * PAGE_SIZE;
-    const end = start + PAGE_SIZE;
-    const pageTrades = filteredTrades.slice(start, end);
+// ===================================
+// Hero Slider
+// ===================================
+class HeroSlider {
+    constructor() {
+        this.currentSlide = 0;
+        this.slides = document.querySelectorAll('.slide');
+        this.dots = document.querySelectorAll('.dot');
+        this.autoPlayInterval = null;
+        this.init();
+    }
 
-    if (pageTrades.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="8" class="loading-cell">No trades found</td>
-            </tr>
-        `;
+    init() {
+        // Prev/Next buttons
+        document.querySelector('.slider-btn.prev')?.addEventListener('click', () => this.prevSlide());
+        document.querySelector('.slider-btn.next')?.addEventListener('click', () => this.nextSlide());
+
+        // Dots navigation
+        this.dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => this.goToSlide(index));
+        });
+
+        // Auto-play
+        this.startAutoPlay();
+        
+        // Pause on hover
+        document.querySelector('.hero-slider')?.addEventListener('mouseenter', () => this.stopAutoPlay());
+        document.querySelector('.hero-slider')?.addEventListener('mouseleave', () => this.startAutoPlay());
+    }
+
+    goToSlide(index) {
+        this.slides[this.currentSlide].classList.remove('active');
+        this.dots[this.currentSlide].classList.remove('active');
+        
+        this.currentSlide = index;
+        
+        this.slides[this.currentSlide].classList.add('active');
+        this.dots[this.currentSlide].classList.add('active');
+    }
+
+    nextSlide() {
+        const next = (this.currentSlide + 1) % this.slides.length;
+        this.goToSlide(next);
+    }
+
+    prevSlide() {
+        const prev = (this.currentSlide - 1 + this.slides.length) % this.slides.length;
+        this.goToSlide(prev);
+    }
+
+    startAutoPlay() {
+        this.autoPlayInterval = setInterval(() => this.nextSlide(), CONFIG.SLIDER_INTERVAL);
+    }
+
+    stopAutoPlay() {
+        if (this.autoPlayInterval) {
+            clearInterval(this.autoPlayInterval);
+        }
+    }
+}
+
+// ===================================
+// Market Data Manager
+// ===================================
+class MarketDataManager {
+    constructor() {
+        this.cache = new Map();
+        this.cacheExpiry = 60000; // 1 minute
+    }
+
+    async fetchMarketData() {
+        try {
+            // Fetch crypto data from CoinGecko
+            const cryptoData = await this.fetchCryptoData();
+            
+            // Fetch indices data (simulated for now - will use Alpha Vantage)
+            const indicesData = await this.fetchIndicesData();
+            
+            // Fetch commodities data (simulated)
+            const commoditiesData = await this.fetchCommoditiesData();
+            
+            // Fetch forex data (simulated)
+            const forexData = await this.fetchForexData();
+            
+            return {
+                crypto: cryptoData,
+                indices: indicesData,
+                commodities: commoditiesData,
+                forex: forexData
+            };
+        } catch (error) {
+            console.error('Error fetching market data:', error);
+            return null;
+        }
+    }
+
+    async fetchCryptoData() {
+        const cached = this.getFromCache('crypto');
+        if (cached) return cached;
+
+        try {
+            const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=true');
+            const data = await response.json();
+            
+            const formatted = data.map(coin => ({
+                id: coin.id,
+                symbol: coin.symbol.toUpperCase(),
+                name: coin.name,
+                price: coin.current_price,
+                change24h: coin.price_change_percentage_24h,
+                volume: coin.total_volume,
+                marketCap: coin.market_cap,
+                image: coin.image,
+                sparkline: coin.sparkline_in_7d.price,
+                category: 'crypto'
+            }));
+            
+            this.setCache('crypto', formatted);
+            return formatted;
+        } catch (error) {
+            console.error('Error fetching crypto data:', error);
+            return [];
+        }
+    }
+
+    async fetchIndicesData() {
+        // Simulated data - will be replaced with Alpha Vantage API
+        return [
+            { symbol: 'SPX', name: 'S&P 500', price: 4550.50, change24h: 1.25, volume: 0, marketCap: 0, category: 'indices' },
+            { symbol: 'DAX', name: 'DAX 40', price: 16450.20, change24h: 0.65, volume: 0, marketCap: 0, category: 'indices' },
+            { symbol: 'IXIC', name: 'NASDAQ', price: 14200.10, change24h: 1.50, volume: 0, marketCap: 0, category: 'indices' },
+            { symbol: 'FTSE', name: 'FTSE 100', price: 7650.40, change24h: -0.30, volume: 0, marketCap: 0, category: 'indices' },
+        ];
+    }
+
+    async fetchCommoditiesData() {
+        // Simulated data
+        return [
+            { symbol: 'BRENT', name: 'Brent Crude Oil', price: 85.32, change24h: -1.38, volume: 0, marketCap: 0, category: 'commodities' },
+            { symbol: 'GOLD', name: 'Gold', price: 2050.40, change24h: 0.45, volume: 0, marketCap: 0, category: 'commodities' },
+        ];
+    }
+
+    async fetchForexData() {
+        // Simulated data
+        return [
+            { symbol: 'EURUSD', name: 'EUR/USD', price: 1.0856, change24h: 0.08, volume: 0, marketCap: 0, category: 'forex' },
+            { symbol: 'GBPUSD', name: 'GBP/USD', price: 1.2698, change24h: 0.20, volume: 0, marketCap: 0, category: 'forex' },
+        ];
+    }
+
+    getFromCache(key) {
+        const cached = this.cache.get(key);
+        if (cached && Date.now() - cached.timestamp < this.cacheExpiry) {
+            return cached.data;
+        }
+        return null;
+    }
+
+    setCache(key, data) {
+        this.cache.set(key, { data, timestamp: Date.now() });
+    }
+}
+
+// ===================================
+// Market Ticker Updates
+// ===================================
+async function updateMarketTicker() {
+    const marketData = new MarketDataManager();
+    const data = await marketData.fetchMarketData();
+    
+    if (!data) return;
+
+    // Update S&P 500
+    const sp500 = data.indices.find(i => i.symbol === 'SPX');
+    if (sp500) {
+        updateTickerItem('ticker-sp500', sp500.price, sp500.change24h);
+    }
+
+    // Update DAX
+    const dax = data.indices.find(i => i.symbol === 'DAX');
+    if (dax) {
+        updateTickerItem('ticker-dax', dax.price, dax.change24h);
+    }
+
+    // Update BTC
+    const btc = data.crypto.find(c => c.symbol === 'BTC');
+    if (btc) {
+        updateTickerItem('ticker-btc', btc.price, btc.change24h);
+    }
+
+    // Update Oil
+    const oil = data.commodities.find(c => c.symbol === 'BRENT');
+    if (oil) {
+        updateTickerItem('ticker-oil', oil.price, oil.change24h);
+    }
+
+    // Update EUR/USD
+    const eurusd = data.forex.find(f => f.symbol === 'EURUSD');
+    if (eurusd) {
+        updateTickerItem('ticker-eurusd', eurusd.price, eurusd.change24h);
+    }
+}
+
+function updateTickerItem(id, price, change) {
+    const item = document.getElementById(id);
+    if (!item) return;
+
+    const valueEl = item.querySelector('.ticker-value');
+    const changeEl = item.querySelector('.ticker-change');
+
+    if (valueEl) {
+        valueEl.textContent = formatPrice(price);
+    }
+
+    if (changeEl) {
+        const formattedChange = change >= 0 ? `+${change.toFixed(2)}%` : `${change.toFixed(2)}%`;
+        changeEl.textContent = formattedChange;
+        changeEl.classList.toggle('positive', change >= 0);
+        changeEl.classList.toggle('negative', change < 0);
+    }
+}
+
+// ===================================
+// Market Table Rendering
+// ===================================
+async function loadMarketTable() {
+    const marketData = new MarketDataManager();
+    const data = await marketData.fetchMarketData();
+    
+    if (!data) {
+        document.getElementById('marketTableBody').innerHTML = '<tr><td colspan="6" class="loading-cell">Failed to load market data</td></tr>';
         return;
     }
 
-    tbody.innerHTML = pageTrades.map((trade, index) => {
-        const rowNumber = start + index + 1;
-        const countryFlag = getCountryFlag(trade.country);
-        const tradeTypeClass = trade.trade?.type === 'purchase' ? 'buy' : 'sale';
-        const amount = formatAmount(trade.trade?.size || '-');
-        const price = trade.trade?.price ? `$${trade.trade.price.toFixed(2)}` : '-';
-        const date = formatDate(trade.dates?.transaction);
+    // Combine all data
+    const allMarkets = [
+        ...data.crypto,
+        ...data.indices,
+        ...data.commodities,
+        ...data.forex
+    ];
 
-        return `
-            <tr onclick="showTradeDetails('${trade._id}')">
-                <td>${rowNumber}</td>
-                <td>
-                    <strong>${trade.politician?.name || 'Unknown'}</strong><br>
-                    <small style="color: #666;">${trade.politician?.party || ''}</small>
-                </td>
-                <td>${countryFlag} ${trade.country.toUpperCase()}</td>
-                <td>
-                    <strong>${trade.trade?.ticker || trade.trade?.assetName || 'N/A'}</strong><br>
-                    <small style="color: #666;">${trade.trade?.assetName || ''}</small>
-                </td>
-                <td>
-                    <span class="badge-${tradeTypeClass}">
-                        ${(trade.trade?.type || 'other').toUpperCase()}
-                    </span>
-                </td>
-                <td>${amount}</td>
-                <td>${price}</td>
-                <td>${date}</td>
-            </tr>
-        `;
-    }).join('');
-
-    // Update pagination
-    updatePagination();
+    renderMarketTable(allMarkets);
 }
 
-function updatePagination() {
-    const totalPages = Math.ceil(filteredTrades.length / PAGE_SIZE);
-    document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
-    document.getElementById('prevPage').disabled = currentPage === 1;
-    document.getElementById('nextPage').disabled = currentPage === totalPages;
+function renderMarketTable(markets) {
+    const tbody = document.getElementById('marketTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = markets.map(market => `
+        <tr>
+            <td>
+                <div class="asset-info">
+                    ${market.image ? `<img src="${market.image}" alt="${market.name}" class="asset-icon">` : '<span class="asset-icon">📊</span>'}
+                    <div>
+                        <div class="asset-name">${market.name}</div>
+                        <div class="asset-symbol">${market.symbol}</div>
+                    </div>
+                </div>
+            </td>
+            <td>${formatPrice(market.price)}</td>
+            <td>
+                <span class="price-change ${market.change24h >= 0 ? 'positive' : 'negative'}">
+                    ${market.change24h >= 0 ? '+' : ''}${market.change24h.toFixed(2)}%
+                </span>
+            </td>
+            <td>${market.volume > 0 ? formatVolume(market.volume) : 'N/A'}</td>
+            <td>${market.marketCap > 0 ? formatVolume(market.marketCap) : 'N/A'}</td>
+            <td>
+                ${market.sparkline ? renderSparkline(market.sparkline) : '<span style="color: var(--text-tertiary);">No data</span>'}
+            </td>
+        </tr>
+    `).join('');
+
+    // Add filter functionality
+    setupMarketFilters(markets);
 }
 
-function getCountryFlag(country) {
+function renderSparkline(data) {
+    if (!data || data.length === 0) return '<span>-</span>';
+    
+    const min = Math.min(...data);
+    const max = Math.max(...data);
+    const range = max - min;
+    
+    const points = data.map((value, index) => {
+        const x = (index / (data.length - 1)) * 60;
+        const y = 20 - ((value - min) / range) * 20;
+        return `${x},${y}`;
+    }).join(' ');
+    
+    const color = data[data.length - 1] > data[0] ? 'var(--success)' : 'var(--danger)';
+    
+    return `<svg width="60" height="20" style="display: block;">
+        <polyline points="${points}" fill="none" stroke="${color}" stroke-width="1.5" />
+    </svg>`;
+}
+
+function setupMarketFilters(allMarkets) {
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            const category = btn.dataset.category;
+            const filtered = category === 'all' ? allMarkets : allMarkets.filter(m => m.category === category);
+            renderMarketTable(filtered);
+        });
+    });
+}
+
+// ===================================
+// Political Trades Preview
+// ===================================
+async function loadPoliticalTradesPreview() {
+    try {
+        const response = await fetch(`${CONFIG.API_BASE_URL}/trades?limit=5`);
+        const data = await response.json();
+        
+        if (data.success && data.data.length > 0) {
+            renderPoliticalTradesPreview(data.data);
+        }
+    } catch (error) {
+        console.error('Error loading political trades:', error);
+    }
+}
+
+function renderPoliticalTradesPreview(trades) {
+    const tbody = document.querySelector('#politicalTradesPreview tbody');
+    if (!tbody) return;
+
+    tbody.innerHTML = trades.map(trade => `
+        <tr>
+            <td>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    ${trade.politician.imageUrl 
+                        ? `<img src="${trade.politician.imageUrl}" alt="${trade.politician.name}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">` 
+                        : `<div style="width: 32px; height: 32px; border-radius: 50%; background: var(--accent-primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.875rem;">${trade.politician.name.split(' ').map(n => n[0]).join('').slice(0, 2)}</div>`
+                    }
+                    <span style="font-weight: 600;">${trade.politician.name}</span>
+                </div>
+            </td>
+            <td>
+                <span style="display: flex; align-items: center; gap: 0.5rem;">
+                    ${getCountryFlag(trade.country)}
+                    ${formatCountry(trade.country)}
+                </span>
+            </td>
+            <td>
+                <div>
+                    <div style="font-weight: 600;">${trade.trade.ticker || 'N/A'}</div>
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">${trade.trade.assetName || '-'}</div>
+                </div>
+            </td>
+            <td>
+                <span class="trade-type-badge ${trade.trade.type}">
+                    ${trade.trade.type.toUpperCase()}
+                </span>
+            </td>
+            <td>${trade.trade.size || 'N/A'}</td>
+            <td>${formatDate(trade.dates.transaction)}</td>
+        </tr>
+    `).join('');
+}
+
+// ===================================
+// Download Market Report
+// ===================================
+document.getElementById('downloadMarketData')?.addEventListener('click', async () => {
+    const marketData = new MarketDataManager();
+    const data = await marketData.fetchMarketData();
+    
+    if (!data) {
+        alert('Failed to fetch market data');
+        return;
+    }
+
+    // Combine all data
+    const allMarkets = [
+        ...data.crypto,
+        ...data.indices,
+        ...data.commodities,
+        ...data.forex
+    ];
+
+    // Create CSV
+    const csv = [
+        ['Asset', 'Symbol', 'Price', 'Change 24h (%)', 'Volume', 'Market Cap', 'Category'],
+        ...allMarkets.map(m => [
+            m.name,
+            m.symbol,
+            m.price,
+            m.change24h,
+            m.volume,
+            m.marketCap,
+            m.category
+        ])
+    ].map(row => row.join(',')).join('\n');
+
+    // Download
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `market-report-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+});
+
+// ===================================
+// Newsletter Form
+// ===================================
+document.getElementById('newsletterForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = e.target.querySelector('input[type="email"]').value;
+    
+    // Simulate submission
+    alert(`Thank you for subscribing with ${email}! We'll send you daily market insights.`);
+    e.target.reset();
+});
+
+// ===================================
+// Utility Functions
+// ===================================
+function formatPrice(price) {
+    if (price > 1000) {
+        return '$' + price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    return '$' + price.toFixed(price < 1 ? 4 : 2);
+}
+
+function formatVolume(volume) {
+    if (volume >= 1e12) return '$' + (volume / 1e12).toFixed(2) + 'T';
+    if (volume >= 1e9) return '$' + (volume / 1e9).toFixed(2) + 'B';
+    if (volume >= 1e6) return '$' + (volume / 1e6).toFixed(2) + 'M';
+    if (volume >= 1e3) return '$' + (volume / 1e3).toFixed(2) + 'K';
+    return '$' + volume.toFixed(2);
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function formatCountry(code) {
+    const countries = {
+        'usa': 'United States',
+        'germany': 'Germany',
+        'uk': 'United Kingdom',
+        'france': 'France',
+        'russia': 'Russia'
+    };
+    return countries[code] || code.toUpperCase();
+}
+
+function getCountryFlag(code) {
     const flags = {
         'usa': '🇺🇸',
         'germany': '🇩🇪',
         'uk': '🇬🇧',
         'france': '🇫🇷',
-        'russia': '🇷🇺',
-        'china': '🇨🇳',
-        'japan': '🇯🇵',
-        'india': '🇮🇳'
+        'russia': '🇷🇺'
     };
-    return flags[country.toLowerCase()] || '🌍';
+    return flags[code] || '🌍';
 }
 
-function formatAmount(amount) {
-    if (!amount || amount === '-') return '-';
-    if (typeof amount === 'string') {
-        if (amount.includes('$')) return amount;
-        return `$${amount}`;
-    }
-    return `$${amount.toLocaleString()}`;
-}
-
-function formatDate(date) {
-    if (!date) return 'N/A';
-    const d = new Date(date);
-    const today = new Date();
-    const diffDays = Math.floor((today - d) / (1000 * 60 * 60 * 24));
+// ===================================
+// Initialize Application
+// ===================================
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 FinanceHub Initializing...');
     
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
+    // Initialize theme
+    new ThemeManager();
     
-    return d.toLocaleDateString('de-DE', { 
-        day: '2-digit', 
-        month: 'short', 
-        year: 'numeric' 
-    });
-}
-
-function showTradeDetails(tradeId) {
-    // TODO: Implement modal/detail view
-    console.log('Show trade details:', tradeId);
-}
-
-// ============================================
-// FILTERS
-// ============================================
-function initFilters() {
-    const countryFilter = document.getElementById('countryFilter');
-    const tradeTypeFilter = document.getElementById('tradeTypeFilter');
-    const searchInput = document.getElementById('searchInput');
-    const prevBtn = document.getElementById('prevPage');
-    const nextBtn = document.getElementById('nextPage');
-
-    countryFilter.addEventListener('change', applyFilters);
-    tradeTypeFilter.addEventListener('change', applyFilters);
-    searchInput.addEventListener('input', applyFilters);
-
-    prevBtn.addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage--;
-            renderTrades();
-        }
-    });
-
-    nextBtn.addEventListener('click', () => {
-        const totalPages = Math.ceil(filteredTrades.length / PAGE_SIZE);
-        if (currentPage < totalPages) {
-            currentPage++;
-            renderTrades();
-        }
-    });
-
-    // Region filter buttons
-    document.querySelectorAll('.region-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.region-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            // TODO: Filter by region
-        });
-    });
-}
-
-function applyFilters() {
-    const country = document.getElementById('countryFilter').value.toLowerCase();
-    const tradeType = document.getElementById('tradeTypeFilter').value.toLowerCase();
-    const search = document.getElementById('searchInput').value.toLowerCase();
-
-    filteredTrades = allTrades.filter(trade => {
-        const matchesCountry = !country || trade.country.toLowerCase() === country;
-        const matchesType = !tradeType || trade.trade?.type === tradeType;
-        const matchesSearch = !search || 
-            trade.politician?.name?.toLowerCase().includes(search) ||
-            trade.trade?.ticker?.toLowerCase().includes(search) ||
-            trade.trade?.assetName?.toLowerCase().includes(search);
-
-        return matchesCountry && matchesType && matchesSearch;
-    });
-
-    currentPage = 1;
-    renderTrades();
-}
-
-// ============================================
-// DOWNLOAD FEATURE
-// ============================================
-function initDownload() {
-    document.getElementById('downloadBtn').addEventListener('click', downloadReport);
-}
-
-function downloadReport() {
-    // Convert trades to CSV
-    const headers = ['#', 'Politician', 'Country', 'Asset', 'Type', 'Amount', 'Price', 'Date'];
-    const rows = filteredTrades.map((trade, index) => [
-        index + 1,
-        trade.politician?.name || 'Unknown',
-        trade.country.toUpperCase(),
-        trade.trade?.ticker || trade.trade?.assetName || 'N/A',
-        (trade.trade?.type || 'other').toUpperCase(),
-        formatAmount(trade.trade?.size || '-'),
-        trade.trade?.price ? `$${trade.trade.price.toFixed(2)}` : '-',
-        formatDate(trade.dates?.transaction)
-    ]);
-
-    const csvContent = [
-        headers.join(','),
-        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n');
-
-    // Create download link
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `politician-trades-${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    alert('✅ Report downloaded successfully!');
-}
-
-// ============================================
-// NEWSLETTER
-// ============================================
-function initNewsletter() {
-    document.getElementById('newsletterForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = e.target.querySelector('input[type="email"]').value;
-        
-        // TODO: Send to backend
-        console.log('Newsletter signup:', email);
-        alert('✅ Thank you for subscribing! You will receive daily updates.');
-        e.target.reset();
-    });
-}
-
-// ============================================
-// THEME TOGGLE
-// ============================================
-function initThemeToggle() {
-    const themeToggle = document.getElementById('themeToggle');
-    const themeIcon = document.getElementById('themeIcon');
+    // Initialize hero slider
+    if (document.querySelector('.hero-slider')) {
+        new HeroSlider();
+    }
     
-    // Check saved theme
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    if (savedTheme === 'dark') {
-        document.body.classList.add('dark-mode');
-        themeIcon.textContent = '☀️';
-    }
-
-    themeToggle.addEventListener('click', () => {
-        document.body.classList.toggle('dark-mode');
-        const isDark = document.body.classList.contains('dark-mode');
-        themeIcon.textContent = isDark ? '☀️' : '🌙';
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    });
-}
-
-// ============================================
-// UTILITY FUNCTIONS
-// ============================================
-function showNotification(message, type = 'info') {
-    // Simple notification system
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 16px 24px;
-        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
-        color: white;
-        border-radius: 8px;
-        font-weight: 600;
-        z-index: 10000;
-        animation: slideIn 0.3s ease;
-    `;
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
-
-// Add CSS animation
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from { transform: translateX(400px); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(400px); opacity: 0; }
-    }
-    .badge-buy {
-        background: rgba(16, 185, 129, 0.1);
-        color: #10b981;
-        padding: 4px 12px;
-        border-radius: 4px;
-        font-weight: 600;
-        font-size: 12px;
-    }
-    .badge-sale {
-        background: rgba(239, 68, 68, 0.1);
-        color: #ef4444;
-        padding: 4px 12px;
-        border-radius: 4px;
-        font-weight: 600;
-        font-size: 12px;
-    }
-`;
-document.head.appendChild(style);
-
+    // Load initial data
+    updateMarketTicker();
+    loadMarketTable();
+    loadPoliticalTradesPreview();
+    
+    // Set up periodic updates
+    setInterval(updateMarketTicker, CONFIG.UPDATE_INTERVAL);
+    
+    console.log('✅ FinanceHub Ready!');
+});

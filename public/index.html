@@ -3,249 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Follow the Money | Global Financial News & Political Trading Intelligence</title>
-    <meta name="description" content="AI-powered financial news platform combining FT.com journalism with CoinMarketCap market data. Track politician trades, global markets, and breaking financial news.">
-    <link rel="stylesheet" href="/css/style-new.css">
+    <title>FinanceHub - Global Markets & Political Investment Intelligence</title>
+    <link rel="stylesheet" href="/css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- Swiper CSS for Slider -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
 </head>
-<body>
-    <!-- Top Market Data Bar (FT.com style) -->
-    <div class="market-ticker-bar">
-        <div class="container-fluid">
-            <div class="ticker-items">
-                <div class="ticker-item" data-symbol="SPX">
-                    <span class="ticker-label">S&P 500</span>
-                    <span class="ticker-value">—</span>
-                    <span class="ticker-change">—</span>
-                </div>
-                <div class="ticker-item" data-symbol="DJI">
-                    <span class="ticker-label">Dow Jones</span>
-                    <span class="ticker-value">—</span>
-                    <span class="ticker-change">—</span>
-                </div>
-                <div class="ticker-item" data-symbol="DAX">
-                    <span class="ticker-label">DAX</span>
-                    <span class="ticker-value">—</span>
-                    <span class="ticker-change">—</span>
-                </div>
-                <div class="ticker-item" data-symbol="BTC">
-                    <span class="ticker-label">Bitcoin</span>
-                    <span class="ticker-value">—</span>
-                    <span class="ticker-change">—</span>
-                </div>
-                <div class="ticker-item" data-symbol="EUR/USD">
-                    <span class="ticker-label">EUR/USD</span>
-                    <span class="ticker-value">—</span>
-                    <span class="ticker-change">—</span>
-                </div>
-                <div class="ticker-item" data-symbol="OIL">
-                    <span class="ticker-label">Brent Crude</span>
-                    <span class="ticker-value">—</span>
-                    <span class="ticker-change">—</span>
-                </div>
-                <a href="#markets" class="ticker-link">View All Markets →</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Header (FT.com inspired) -->
+<body class="light-theme">
+    <!-- Header Navigation -->
     <header class="main-header">
-        <div class="container-fluid">
+        <div class="container-wide">
             <div class="header-top">
-                <button class="menu-toggle" id="menuToggle">
-                    <span class="hamburger-icon">☰</span>
-                </button>
                 <div class="logo">
-                    <h1 class="logo-title">FOLLOW THE MONEY</h1>
-                    <p class="logo-tagline">Political Trading Intelligence</p>
+                    <span class="logo-icon">📊</span>
+                    <h1 class="logo-text">Finance<span class="logo-accent">Hub</span></h1>
                 </div>
+                
+                <nav class="main-nav">
+                    <a href="#home" class="nav-link active">Home</a>
+                    <a href="#markets" class="nav-link">Markets</a>
+                    <a href="#news" class="nav-link">News</a>
+                    <a href="#analysis" class="nav-link">Analysis</a>
+                    <a href="#crypto" class="nav-link">Crypto</a>
+                    <a href="#political-trades" class="nav-link">Political Trades</a>
+                </nav>
+                
                 <div class="header-actions">
-                    <button class="theme-toggle" id="themeToggle">
-                        <span id="themeIcon">🌙</span>
+                    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                        <span class="theme-icon">🌙</span>
                     </button>
                     <button class="btn-subscribe">Subscribe</button>
-                    <button class="btn-signin">Sign In</button>
                 </div>
             </div>
-            <nav class="main-nav">
-                <a href="#" class="nav-link active">HOME</a>
-                <a href="#world" class="nav-link">WORLD</a>
-                <a href="#politics" class="nav-link">POLITICS</a>
-                <a href="#markets" class="nav-link">MARKETS</a>
-                <a href="#crypto" class="nav-link">CRYPTO</a>
-                <a href="#analysis" class="nav-link">ANALYSIS</a>
-                <a href="#blog" class="nav-link">BLOG</a>
-                <a href="#politicians" class="nav-link">POLITICIAN TRADES</a>
-            </nav>
+            
+            <!-- Market Ticker Bar -->
+            <div class="market-ticker">
+                <div class="ticker-item" id="ticker-sp500">
+                    <span class="ticker-label">S&P 500</span>
+                    <span class="ticker-value">Loading...</span>
+                    <span class="ticker-change">--</span>
+                </div>
+                <div class="ticker-item" id="ticker-dax">
+                    <span class="ticker-label">DAX</span>
+                    <span class="ticker-value">Loading...</span>
+                    <span class="ticker-change">--</span>
+                </div>
+                <div class="ticker-item" id="ticker-btc">
+                    <span class="ticker-label">BTC</span>
+                    <span class="ticker-value">Loading...</span>
+                    <span class="ticker-change">--</span>
+                </div>
+                <div class="ticker-item" id="ticker-oil">
+                    <span class="ticker-label">Brent Oil</span>
+                    <span class="ticker-value">Loading...</span>
+                    <span class="ticker-change">--</span>
+                </div>
+                <div class="ticker-item" id="ticker-eurusd">
+                    <span class="ticker-label">EUR/USD</span>
+                    <span class="ticker-value">Loading...</span>
+                    <span class="ticker-change">--</span>
+                </div>
+            </div>
         </div>
     </header>
 
-    <!-- Breaking News Slider -->
-    <section class="hero-slider-section">
-        <div class="container-fluid">
-            <div class="swiper breaking-news-slider">
-                <div class="swiper-wrapper">
-                    <!-- Slide 1 -->
-                    <div class="swiper-slide">
-                        <div class="slide-content">
-                            <div class="slide-image" style="background-image: url('https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=1200');">
-                                <div class="slide-overlay"></div>
-                            </div>
-                            <div class="slide-text">
-                                <span class="slide-category">Breaking News</span>
-                                <h2 class="slide-title">US Politicians Increase Tech Stock Holdings by 40% in Q4 2024</h2>
-                                <p class="slide-excerpt">New data reveals unprecedented surge in tech sector investments among congressional members, led by AI and semiconductor stocks.</p>
-                                <div class="slide-meta">
-                                    <span class="slide-time">2 hours ago</span>
-                                    <span class="slide-author">by AI Financial Team</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Slide 2 -->
-                    <div class="swiper-slide">
-                        <div class="slide-content">
-                            <div class="slide-image" style="background-image: url('https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=1200');">
-                                <div class="slide-overlay"></div>
-                            </div>
-                            <div class="slide-text">
-                                <span class="slide-category">Market Analysis</span>
-                                <h2 class="slide-title">Bitcoin Reaches $104K: What Politician Trades Tell Us</h2>
-                                <p class="slide-excerpt">Cryptocurrency holdings among global legislators suggest institutional confidence in digital assets ahead of major regulatory decisions.</p>
-                                <div class="slide-meta">
-                                    <span class="slide-time">5 hours ago</span>
-                                    <span class="slide-author">by Crypto Intelligence</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Slide 3 -->
-                    <div class="swiper-slide">
-                        <div class="slide-content">
-                            <div class="slide-image" style="background-image: url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200');">
-                                <div class="slide-overlay"></div>
-                            </div>
-                            <div class="slide-text">
-                                <span class="slide-category">Deep Dive</span>
-                                <h2 class="slide-title">European Parliament's Energy Sector Investments Surge Amid Crisis</h2>
-                                <p class="slide-excerpt">Analysis of trading patterns reveals strategic positioning in renewable energy and traditional oil stocks across EU member states.</p>
-                                <div class="slide-meta">
-                                    <span class="slide-time">1 day ago</span>
-                                    <span class="slide-author">by European Markets Desk</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <!-- Hero Slider Section -->
+    <section class="hero-slider">
+        <div class="slider-container">
+            <div class="slide active" style="background: linear-gradient(135deg, rgba(16,24,39,0.85), rgba(59,130,246,0.75)), url('https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=1600&h=900&fit=crop');">
+                <div class="slide-content">
+                    <span class="slide-category">Breaking News</span>
+                    <h2 class="slide-title">Global Markets Rally as Fed Signals Policy Shift</h2>
+                    <p class="slide-description">Major indices surge as central banks indicate potential rate cuts in Q2 2025</p>
+                    <a href="#" class="slide-cta">Read Full Analysis →</a>
                 </div>
-                <div class="swiper-pagination"></div>
-                <div class="swiper-button-prev"></div>
-                <div class="swiper-button-next"></div>
+            </div>
+            <div class="slide" style="background: linear-gradient(135deg, rgba(16,24,39,0.85), rgba(139,92,246,0.75)), url('https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=1600&h=900&fit=crop');">
+                <div class="slide-content">
+                    <span class="slide-category">Crypto Insights</span>
+                    <h2 class="slide-title">Bitcoin Surges Past $100K as Institutional Adoption Accelerates</h2>
+                    <p class="slide-description">Major corporations and ETFs drive unprecedented demand for digital assets</p>
+                    <a href="#" class="slide-cta">Explore Crypto Markets →</a>
+                </div>
+            </div>
+            <div class="slide" style="background: linear-gradient(135deg, rgba(16,24,39,0.85), rgba(34,197,94,0.75)), url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1600&h=900&fit=crop');">
+                <div class="slide-content">
+                    <span class="slide-category">Political Trading</span>
+                    <h2 class="slide-title">US Lawmakers' AI Stock Purchases Up 340% in 2025</h2>
+                    <p class="slide-description">Track real-time investment moves from politicians across 18 countries</p>
+                    <a href="#political-trades" class="slide-cta">View Political Portfolios →</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="slider-controls">
+            <button class="slider-btn prev" aria-label="Previous slide">‹</button>
+            <div class="slider-dots">
+                <button class="dot active" data-slide="0"></button>
+                <button class="dot" data-slide="1"></button>
+                <button class="dot" data-slide="2"></button>
+            </div>
+            <button class="slider-btn next" aria-label="Next slide">›</button>
+        </div>
+    </section>
+
+    <!-- Market Overview Table -->
+    <section class="market-overview">
+        <div class="container-wide">
+            <div class="section-header">
+                <h2 class="section-title">Global Markets Overview</h2>
+                <div class="section-actions">
+                    <button class="filter-btn active" data-category="all">All</button>
+                    <button class="filter-btn" data-category="indices">Indices</button>
+                    <button class="filter-btn" data-category="crypto">Crypto</button>
+                    <button class="filter-btn" data-category="commodities">Commodities</button>
+                    <button class="filter-btn" data-category="forex">Forex</button>
+                    <button class="btn-download" id="downloadMarketData">
+                        <span>📥</span> Download Report
+                    </button>
+                </div>
+            </div>
+            
+            <div class="market-table-wrapper">
+                <table class="market-table">
+                    <thead>
+                        <tr>
+                            <th>Asset</th>
+                            <th>Price</th>
+                            <th>Change 24h</th>
+                            <th>Volume</th>
+                            <th>Market Cap</th>
+                            <th>Chart (7D)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="marketTableBody">
+                        <tr>
+                            <td colspan="6" class="loading-cell">Loading market data...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </section>
 
     <!-- Market Sentiment & Heatmap -->
-    <section class="market-sentiment-section">
-        <div class="container-fluid">
+    <section class="market-sentiment">
+        <div class="container-wide">
             <div class="section-header">
-                <h2 class="section-title">📊 Market Sentiment & Global Overview</h2>
-                <div class="region-filters">
+                <h2 class="section-title">Market Sentiment & Analysis</h2>
+                <div class="region-filter">
                     <button class="region-btn active" data-region="global">🌍 Global</button>
+                    <button class="region-btn" data-region="americas">🌎 Americas</button>
                     <button class="region-btn" data-region="europe">🇪🇺 Europe</button>
-                    <button class="region-btn" data-region="americas">🇺🇸 Americas</button>
-                    <button class="region-btn" data-region="asia">🇨🇳 Asia</button>
+                    <button class="region-btn" data-region="asia">🌏 Asia</button>
                 </div>
             </div>
             
             <div class="sentiment-grid">
+                <!-- Fear & Greed Index -->
                 <div class="sentiment-card">
-                    <div class="sentiment-header">
-                        <span class="sentiment-icon">📈</span>
-                        <h3>Stock Markets</h3>
-                    </div>
-                    <div class="sentiment-meter">
-                        <div class="meter-bar" style="width: 75%; background: linear-gradient(90deg, #10b981, #3b82f6);">
-                            <span class="meter-value">+75% Bullish</span>
+                    <h3 class="card-title">Fear & Greed Index</h3>
+                    <div class="gauge-container">
+                        <div class="gauge" id="fearGreedGauge">
+                            <div class="gauge-needle" style="transform: rotate(85deg);"></div>
                         </div>
-                    </div>
-                    <div class="sentiment-stats">
-                        <div class="stat">
-                            <span class="stat-label">Politician Holdings</span>
-                            <span class="stat-value">$2.4B</span>
+                        <div class="gauge-labels">
+                            <span>Extreme Fear</span>
+                            <span>Fear</span>
+                            <span>Neutral</span>
+                            <span>Greed</span>
+                            <span>Extreme Greed</span>
                         </div>
-                        <div class="stat">
-                            <span class="stat-label">Top Sector</span>
-                            <span class="stat-value">Tech</span>
+                        <div class="gauge-value">
+                            <span class="value-number">47</span>
+                            <span class="value-label">Neutral</span>
                         </div>
                     </div>
                 </div>
-
-                <div class="sentiment-card">
-                    <div class="sentiment-header">
-                        <span class="sentiment-icon">₿</span>
-                        <h3>Crypto Markets</h3>
-                    </div>
-                    <div class="sentiment-meter">
-                        <div class="meter-bar" style="width: 82%; background: linear-gradient(90deg, #f59e0b, #10b981);">
-                            <span class="meter-value">+82% Bullish</span>
+                
+                <!-- Market Heatmap -->
+                <div class="sentiment-card wide">
+                    <h3 class="card-title">Sector Performance Heatmap</h3>
+                    <div class="heatmap-container" id="sectorHeatmap">
+                        <div class="heatmap-item positive large" data-sector="tech">
+                            <span class="heatmap-label">Technology</span>
+                            <span class="heatmap-value">+3.2%</span>
                         </div>
-                    </div>
-                    <div class="sentiment-stats">
-                        <div class="stat">
-                            <span class="stat-label">Politician Holdings</span>
-                            <span class="stat-value">$340M</span>
+                        <div class="heatmap-item positive medium" data-sector="finance">
+                            <span class="heatmap-label">Finance</span>
+                            <span class="heatmap-value">+1.8%</span>
                         </div>
-                        <div class="stat">
-                            <span class="stat-label">Top Asset</span>
-                            <span class="stat-value">BTC</span>
+                        <div class="heatmap-item negative medium" data-sector="energy">
+                            <span class="heatmap-label">Energy</span>
+                            <span class="heatmap-value">-1.4%</span>
                         </div>
-                    </div>
-                </div>
-
-                <div class="sentiment-card">
-                    <div class="sentiment-header">
-                        <span class="sentiment-icon">🛢️</span>
-                        <h3>Energy Markets</h3>
-                    </div>
-                    <div class="sentiment-meter">
-                        <div class="meter-bar" style="width: 45%; background: linear-gradient(90deg, #ef4444, #f59e0b);">
-                            <span class="meter-value">+45% Mixed</span>
+                        <div class="heatmap-item positive small" data-sector="healthcare">
+                            <span class="heatmap-label">Healthcare</span>
+                            <span class="heatmap-value">+0.9%</span>
                         </div>
-                    </div>
-                    <div class="sentiment-stats">
-                        <div class="stat">
-                            <span class="stat-label">Politician Holdings</span>
-                            <span class="stat-value">$890M</span>
+                        <div class="heatmap-item negative large" data-sector="realestate">
+                            <span class="heatmap-label">Real Estate</span>
+                            <span class="heatmap-value">-2.1%</span>
                         </div>
-                        <div class="stat">
-                            <span class="stat-label">Top Asset</span>
-                            <span class="stat-value">Oil</span>
+                        <div class="heatmap-item positive medium" data-sector="consumer">
+                            <span class="heatmap-label">Consumer</span>
+                            <span class="heatmap-value">+1.3%</span>
                         </div>
                     </div>
                 </div>
-
+                
+                <!-- AI Market Insights -->
                 <div class="sentiment-card">
-                    <div class="sentiment-header">
-                        <span class="sentiment-icon">🏠</span>
-                        <h3>Real Estate</h3>
-                    </div>
-                    <div class="sentiment-meter">
-                        <div class="meter-bar" style="width: 38%; background: linear-gradient(90deg, #ef4444, #dc2626);">
-                            <span class="meter-value">+38% Bearish</span>
+                    <h3 class="card-title">🤖 AI Market Insights</h3>
+                    <div class="ai-insights">
+                        <div class="insight-item">
+                            <span class="insight-icon">📈</span>
+                            <p>Tech sector showing strong momentum with AI stocks leading gains</p>
                         </div>
-                    </div>
-                    <div class="sentiment-stats">
-                        <div class="stat">
-                            <span class="stat-label">Politician Holdings</span>
-                            <span class="stat-value">$1.8B</span>
+                        <div class="insight-item">
+                            <span class="insight-icon">⚠️</span>
+                            <p>Energy sector facing headwinds from oversupply concerns</p>
                         </div>
-                        <div class="stat">
-                            <span class="stat-label">Top Type</span>
-                            <span class="stat-value">REITs</span>
+                        <div class="insight-item">
+                            <span class="insight-icon">💡</span>
+                            <p>Institutional buying in Bitcoin suggests bullish sentiment continuation</p>
                         </div>
                     </div>
                 </div>
@@ -253,126 +234,140 @@
         </div>
     </section>
 
-    <!-- Blog Articles Section -->
-    <section class="blog-section">
-        <div class="container-fluid">
+    <!-- News & Blog Integration -->
+    <section class="news-blog">
+        <div class="container-wide">
             <div class="section-header">
-                <h2 class="section-title">📰 Expert Analysis & Deep Dives</h2>
-                <a href="#blog" class="view-all-link">View All Articles →</a>
+                <h2 class="section-title">Latest Analysis & Insights</h2>
+                <div class="news-categories">
+                    <button class="news-cat-btn active" data-category="all">All</button>
+                    <button class="news-cat-btn" data-category="markets">Markets</button>
+                    <button class="news-cat-btn" data-category="crypto">Crypto</button>
+                    <button class="news-cat-btn" data-category="politics">Politics</button>
+                    <button class="news-cat-btn" data-category="analysis">Deep Analysis</button>
+                </div>
             </div>
             
-            <div class="blog-grid">
-                <article class="blog-card featured">
-                    <div class="blog-image" style="background-image: url('https://images.unsplash.com/photo-1642790106117-e829e14a795f?w=800');"></div>
-                    <div class="blog-content">
-                        <span class="blog-category">Expert Analysis</span>
-                        <h3 class="blog-title">Why Politicians Are Betting Big on AI: A $2B Investment Trend</h3>
-                        <p class="blog-excerpt">An in-depth analysis of congressional AI investments reveals strategic positioning ahead of major regulatory frameworks. Key sectors include semiconductor manufacturing, cloud computing, and enterprise AI solutions.</p>
-                        <div class="blog-meta">
-                            <span class="blog-date">January 5, 2025</span>
-                            <span class="blog-read-time">12 min read</span>
+            <div class="news-grid" id="newsGrid">
+                <!-- Featured Article -->
+                <article class="news-card featured">
+                    <div class="news-image" style="background-image: url('https://images.unsplash.com/photo-1639322537228-f564d14b456a?w=800&h=600&fit=crop');"></div>
+                    <div class="news-content">
+                        <span class="news-category">Featured Analysis</span>
+                        <h3 class="news-title">The AI Revolution in Global Markets: How Machine Learning is Reshaping Investment Strategies</h3>
+                        <p class="news-excerpt">A comprehensive deep dive into how artificial intelligence and machine learning algorithms are transforming traditional investment approaches...</p>
+                        <div class="news-meta">
+                            <span class="news-author">By Sarah Johnson</span>
+                            <span class="news-date">2 hours ago</span>
+                            <span class="news-read-time">8 min read</span>
                         </div>
                     </div>
                 </article>
-
-                <article class="blog-card">
-                    <div class="blog-image" style="background-image: url('https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=600');"></div>
-                    <div class="blog-content">
-                        <span class="blog-category">Crypto Intelligence</span>
-                        <h3 class="blog-title">Crypto Regulation: What Politician Portfolios Reveal</h3>
-                        <p class="blog-excerpt">Analysis of crypto holdings among lawmakers suggests potential regulatory shifts...</p>
-                        <div class="blog-meta">
-                            <span class="blog-date">January 4, 2025</span>
-                            <span class="blog-read-time">8 min read</span>
+                
+                <!-- Regular Articles -->
+                <article class="news-card">
+                    <div class="news-image" style="background-image: url('https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=600&h=400&fit=crop');"></div>
+                    <div class="news-content">
+                        <span class="news-category">Markets</span>
+                        <h3 class="news-title">European Central Bank Hints at Rate Cuts Amid Economic Slowdown</h3>
+                        <div class="news-meta">
+                            <span class="news-author">Michael Chen</span>
+                            <span class="news-date">4 hours ago</span>
                         </div>
                     </div>
                 </article>
-
-                <article class="blog-card">
-                    <div class="blog-image" style="background-image: url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600');"></div>
-                    <div class="blog-content">
-                        <span class="blog-category">Market Tutorial</span>
-                        <h3 class="blog-title">How to Track Politician Trades: A Beginner's Guide</h3>
-                        <p class="blog-excerpt">Step-by-step tutorial on using our platform to identify investment opportunities...</p>
-                        <div class="blog-meta">
-                            <span class="blog-date">January 3, 2025</span>
-                            <span class="blog-read-time">15 min read</span>
+                
+                <article class="news-card">
+                    <div class="news-image" style="background-image: url('https://images.unsplash.com/photo-1622547748225-3fc4abd2cca0?w=600&h=400&fit=crop');"></div>
+                    <div class="news-content">
+                        <span class="news-category">Crypto</span>
+                        <h3 class="news-title">Ethereum 3.0 Upgrade: What Investors Need to Know</h3>
+                        <div class="news-meta">
+                            <span class="news-author">Alex Rivera</span>
+                            <span class="news-date">6 hours ago</span>
                         </div>
                     </div>
                 </article>
+                
+                <article class="news-card">
+                    <div class="news-image" style="background-image: url('https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=400&fit=crop');"></div>
+                    <div class="news-content">
+                        <span class="news-category">Politics</span>
+                        <h3 class="news-title">US Lawmakers Increase Tech Stock Holdings by 340% This Year</h3>
+                        <div class="news-meta">
+                            <span class="news-author">Emma Davis</span>
+                            <span class="news-date">8 hours ago</span>
+                        </div>
+                    </div>
+                </article>
+                
+                <article class="news-card">
+                    <div class="news-image" style="background-image: url('https://images.unsplash.com/photo-1604594849809-dfedbc827105?w=600&h=400&fit=crop');"></div>
+                    <div class="news-content">
+                        <span class="news-category">Analysis</span>
+                        <h3 class="news-title">Renewable Energy Stocks: A 2025 Investment Guide</h3>
+                        <div class="news-meta">
+                            <span class="news-author">David Park</span>
+                            <span class="news-date">12 hours ago</span>
+                        </div>
+                    </div>
+                </article>
+            </div>
+            
+            <div class="load-more-container">
+                <button class="btn-load-more">Load More Articles</button>
             </div>
         </div>
     </section>
 
-    <!-- Politician Trades Section (Core Feature) -->
-    <section class="politician-trades-section">
-        <div class="container-fluid">
+    <!-- Political Trades Teaser (Bonus Feature) -->
+    <section class="political-trades-teaser" id="political-trades">
+        <div class="container-wide">
             <div class="section-header">
-                <h2 class="section-title">🏛️ Latest Politician Trades - Real-Time Intelligence</h2>
-                <p class="section-subtitle">Track investments from legislators across 18 countries</p>
+                <h2 class="section-title">🏛️ Political Investment Intelligence</h2>
+                <p class="section-subtitle">Track real-time investment moves from lawmakers across 18 countries</p>
             </div>
-
-            <div class="trades-filters">
-                <select class="filter-select" id="countryFilter">
-                    <option value="">All Countries</option>
-                    <option value="usa">🇺🇸 United States</option>
-                    <option value="germany">🇩🇪 Germany</option>
-                    <option value="uk">🇬🇧 United Kingdom</option>
-                    <option value="france">🇫🇷 France</option>
-                    <option value="russia">🇷🇺 Russia</option>
-                </select>
-                <select class="filter-select" id="tradeTypeFilter">
-                    <option value="">All Types</option>
-                    <option value="purchase">Purchase</option>
-                    <option value="sale">Sale</option>
-                </select>
-                <input type="text" class="filter-search" id="searchInput" placeholder="Search politician or ticker...">
-                <button class="btn-download" id="downloadBtn">
-                    📥 Download Report
-                </button>
-            </div>
-
-            <div class="trades-table-wrapper">
-                <table class="trades-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Politician</th>
-                            <th>Country</th>
-                            <th>Asset</th>
-                            <th>Type</th>
-                            <th>Amount</th>
-                            <th>Price</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tradesTableBody">
-                        <tr>
-                            <td colspan="8" class="loading-cell">Loading trades...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="trades-pagination">
-                <button class="btn-pagination" id="prevPage">← Previous</button>
-                <span class="pagination-info" id="pageInfo">Page 1 of 10</span>
-                <button class="btn-pagination" id="nextPage">Next →</button>
+            
+            <div class="political-trades-preview">
+                <div class="trades-header">
+                    <h3>Recent Political Trades</h3>
+                    <a href="/political-trades" class="view-all-link">View All 632 Trades →</a>
+                </div>
+                
+                <div class="trades-table-preview" id="politicalTradesPreview">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Politician</th>
+                                <th>Country</th>
+                                <th>Asset</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="6" class="loading-cell">Loading political trades...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- Newsletter Signup -->
     <section class="newsletter-section">
-        <div class="container-fluid">
-            <div class="newsletter-box">
+        <div class="container-wide">
+            <div class="newsletter-card">
                 <div class="newsletter-content">
-                    <h3 class="newsletter-title">📬 Get Daily Market Intelligence</h3>
-                    <p class="newsletter-text">Subscribe to receive daily updates on politician trades, market analysis, and exclusive investment insights.</p>
+                    <h2 class="newsletter-title">Stay Ahead of the Markets</h2>
+                    <p class="newsletter-description">Get daily market insights, AI-powered analysis, and political trading alerts delivered to your inbox.</p>
                 </div>
                 <form class="newsletter-form" id="newsletterForm">
-                    <input type="email" class="newsletter-input" placeholder="Enter your email" required>
-                    <button type="submit" class="btn-newsletter">Subscribe</button>
+                    <input type="email" placeholder="Enter your email address" class="newsletter-input" required>
+                    <button type="submit" class="btn-newsletter-submit">Subscribe Free</button>
                 </form>
             </div>
         </div>
@@ -380,53 +375,58 @@
 
     <!-- Footer -->
     <footer class="main-footer">
-        <div class="container-fluid">
+        <div class="container-wide">
             <div class="footer-grid">
                 <div class="footer-col">
-                    <h4 class="footer-title">Follow the Money</h4>
-                    <p class="footer-text">AI-powered financial intelligence platform tracking politician investments across 18 countries.</p>
-                    <div class="footer-social">
-                        <a href="#" class="social-link">Twitter</a>
-                        <a href="#" class="social-link">LinkedIn</a>
-                        <a href="#" class="social-link">Telegram</a>
+                    <div class="footer-logo">
+                        <span class="logo-icon">📊</span>
+                        <h3>Finance<span class="logo-accent">Hub</span></h3>
                     </div>
+                    <p class="footer-description">Global financial intelligence platform combining real-time market data with political investment tracking.</p>
                 </div>
+                
                 <div class="footer-col">
-                    <h5 class="footer-subtitle">Categories</h5>
+                    <h4 class="footer-heading">Markets</h4>
                     <ul class="footer-links">
-                        <li><a href="#markets">Markets</a></li>
-                        <li><a href="#crypto">Crypto</a></li>
-                        <li><a href="#politics">Politics</a></li>
-                        <li><a href="#analysis">Analysis</a></li>
+                        <li><a href="#indices">Indices</a></li>
+                        <li><a href="#crypto">Cryptocurrency</a></li>
+                        <li><a href="#commodities">Commodities</a></li>
+                        <li><a href="#forex">Forex</a></li>
                     </ul>
                 </div>
+                
                 <div class="footer-col">
-                    <h5 class="footer-subtitle">Resources</h5>
+                    <h4 class="footer-heading">Analysis</h4>
                     <ul class="footer-links">
-                        <li><a href="#api">API Documentation</a></li>
-                        <li><a href="#data">Data Sources</a></li>
-                        <li><a href="#blog">Blog</a></li>
-                        <li><a href="#about">About Us</a></li>
+                        <li><a href="#news">Latest News</a></li>
+                        <li><a href="#insights">Market Insights</a></li>
+                        <li><a href="#political-trades">Political Trades</a></li>
+                        <li><a href="#research">Research Reports</a></li>
                     </ul>
                 </div>
+                
                 <div class="footer-col">
-                    <h5 class="footer-subtitle">Legal</h5>
+                    <h4 class="footer-heading">Company</h4>
                     <ul class="footer-links">
-                        <li><a href="#privacy">Privacy Policy</a></li>
-                        <li><a href="#terms">Terms of Service</a></li>
-                        <li><a href="#disclaimer">Disclaimer</a></li>
+                        <li><a href="/about">About Us</a></li>
+                        <li><a href="/api">API Access</a></li>
+                        <li><a href="/privacy">Privacy Policy</a></li>
+                        <li><a href="/terms">Terms of Service</a></li>
                     </ul>
                 </div>
             </div>
+            
             <div class="footer-bottom">
-                <p>© 2025 Follow the Money. All rights reserved. Data sourced from official government disclosures and public records.</p>
+                <p class="footer-copyright">© 2025 FinanceHub. All rights reserved. Real-time data powered by Alpha Vantage & CoinGecko.</p>
+                <div class="footer-social">
+                    <a href="#" aria-label="Twitter">𝕏</a>
+                    <a href="#" aria-label="LinkedIn">in</a>
+                    <a href="#" aria-label="GitHub">GitHub</a>
+                </div>
             </div>
         </div>
     </footer>
 
-    <!-- Swiper JS -->
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <script src="/js/app-new.js"></script>
+    <script src="/js/app.js"></script>
 </body>
 </html>
-
