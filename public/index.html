@@ -108,14 +108,14 @@
     </section>
 
     <!-- Market Overview Table -->
-    <section class="market-overview">
+    <section class="market-overview" id="markets">
         <div class="container-wide">
             <div class="section-header">
                 <h2 class="section-title">Global Markets Overview</h2>
                 <div class="section-actions">
                     <button class="filter-btn active" data-category="all">All</button>
-                    <button class="filter-btn" data-category="indices">Indices</button>
-                    <button class="filter-btn" data-category="crypto">Crypto</button>
+                    <button class="filter-btn" data-category="crypto">Crypto (100)</button>
+                    <button class="filter-btn" data-category="index">Indices (18 Countries)</button>
                     <button class="filter-btn" data-category="commodities">Commodities</button>
                     <button class="filter-btn" data-category="forex">Forex</button>
                     <button class="btn-download" id="downloadMarketData">
@@ -147,16 +147,21 @@
     </section>
 
     <!-- Market Sentiment & Heatmap -->
-    <section class="market-sentiment">
+    <section class="market-sentiment" id="analysis">
         <div class="container-wide">
             <div class="section-header">
                 <h2 class="section-title">Market Sentiment & Analysis</h2>
                 <div class="region-filter">
-                    <button class="region-btn active" data-region="global">🌍 Global</button>
-                    <button class="region-btn" data-region="americas">🌎 Americas</button>
-                    <button class="region-btn" data-region="europe">🇪🇺 Europe</button>
-                    <button class="region-btn" data-region="asia">🌏 Asia</button>
+                    <button class="region-btn active" data-region="global">🌍 Global (18 Countries)</button>
+                    <button class="region-btn" data-region="americas">🌎 Americas (4)</button>
+                    <button class="region-btn" data-region="europe">🇪🇺 Europe (6)</button>
+                    <button class="region-btn" data-region="asia">🌏 Asia (6)</button>
                 </div>
+            </div>
+            
+            <!-- Länder-Indizes Grid (wird dynamisch geladen) -->
+            <div class="countries-indices-grid" id="countriesIndicesGrid" style="display: none; margin-bottom: 3rem;">
+                <!-- Wird via JavaScript gefüllt -->
             </div>
             
             <div class="sentiment-grid">
@@ -235,7 +240,7 @@
     </section>
 
     <!-- News & Blog Integration -->
-    <section class="news-blog">
+    <section class="news-blog" id="news">
         <div class="container-wide">
             <div class="section-header">
                 <h2 class="section-title">Latest Analysis & Insights</h2>

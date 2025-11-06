@@ -11,6 +11,7 @@ const countriesRoutes = require('./countries.routes');
 const configRoutes = require('./config.routes');
 const marketRoutes = require('./market.routes');
 const hybridMarketRoutes = require('./hybrid-market.routes');
+const worldIndicesRoutes = require('./world-indices.routes');
 
 // Mount routes
 router.use('/trades', tradesRoutes);
@@ -20,6 +21,7 @@ router.use('/config', configRoutes);
 router.use('/stats', configRoutes); // stats ist ein Alias für config/stats
 router.use('/market', marketRoutes); // Market data & indicators
 router.use('/hybrid-market', hybridMarketRoutes); // 🔥 Hybrid Data Aggregator (ALL sources)
+router.use('/world-indices', worldIndicesRoutes); // 🌍 18 Countries Indices + Fear & Greed
 
 module.exports = router;
 
