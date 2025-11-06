@@ -280,11 +280,25 @@ function renderMarketTable(markets) {
     const tbody = document.getElementById('marketTableBody');
     if (!tbody) return;
 
-    tbody.innerHTML = markets.map(market => `
-        <tr onclick="openMarketDetail('${market.symbol}')" style="cursor: pointer;">
+    // Füge World Indices hinzu wenn "index" Kategorie
+    tbody.innerHTML = markets.map(market => {
+        // Bestimme TradingView Symbol
+        let tvSymbol = market.tvSymbol;
+        if (!tvSymbol) {
+            if (market.symbol === 'BTC') tvSymbol = 'BINANCE:BTCUSDT';
+            else if (market.symbol === 'ETH') tvSymbol = 'BINANCE:ETHUSDT';
+            else if (market.category === 'crypto') tvSymbol = `BINANCE:${market.symbol}USDT`;
+            else if (market.category === 'forex') tvSymbol = `FX:${market.symbol}`;
+            else if (market.category === 'commodities' && market.symbol === 'GOLD') tvSymbol = 'TVC:GOLD';
+            else if (market.category === 'commodities' && market.symbol === 'BRENT') tvSymbol = 'TVC:UKOIL';
+            else tvSymbol = `NASDAQ:${market.symbol}`;
+        }
+        
+        return `
+        <tr onclick="openMarketDetail('${tvSymbol}', '${market.name}')" style="cursor: pointer;" title="Klicken für Chart">
             <td>
                 <div class="asset-info">
-                    ${market.image ? `<img src="${market.image}" alt="${market.name}" class="asset-icon">` : '<span class="asset-icon">📊</span>'}
+                    ${market.image ? `<img src="${market.image}" alt="${market.name}" class="asset-icon">` : `<span class="asset-icon">${market.flag || '📊'}</span>`}
                     <div>
                         <div class="asset-name">${market.name}</div>
                         <div class="asset-symbol">${market.symbol}</div>
@@ -293,17 +307,18 @@ function renderMarketTable(markets) {
             </td>
             <td>${formatPrice(market.price)}</td>
             <td>
-                <span class="price-change ${parseFloat(market.changePercent || market.change24h || 0) >= 0 ? 'positive' : 'negative'}">
-                    ${parseFloat(market.changePercent || market.change24h || 0) >= 0 ? '+' : ''}${parseFloat(market.changePercent || market.change24h || 0).toFixed(2)}%
+                <span class="price-change ${parseFloat(market.changePercent || market.change24h || market.change || 0) >= 0 ? 'positive' : 'negative'}">
+                    ${parseFloat(market.changePercent || market.change24h || market.change || 0) >= 0 ? '+' : ''}${parseFloat(market.changePercent || market.change24h || market.change || 0).toFixed(2)}%
                 </span>
             </td>
-            <td>${market.volume ? formatVolume(market.volume) : 'N/A'}</td>
-            <td>${market.marketCap ? formatVolume(market.marketCap) : 'N/A'}</td>
+            <td>${market.volume ? formatVolume(market.volume) : market.category === 'forex' || market.category === 'index' ? 'N/A' : '-'}</td>
+            <td>${market.marketCap ? formatVolume(market.marketCap) : market.category === 'forex' || market.category === 'index' ? 'N/A' : '-'}</td>
             <td>
-                ${market.sparkline && market.sparkline.length > 0 ? renderSparkline(market.sparkline) : '<span style="color: var(--text-tertiary);">No data</span>'}
+                ${market.sparkline && market.sparkline.length > 0 ? renderSparkline(market.sparkline) : '<span style="color: var(--accent-primary); font-weight: 600; cursor: pointer;">📈 View Chart</span>'}
             </td>
         </tr>
-    `).join('');
+    `;
+    }).join('');
 
     setupMarketFilters(markets);
 }
@@ -314,6 +329,8 @@ function renderSparkline(data) {
     const min = Math.min(...data);
     const max = Math.max(...data);
     const range = max - min;
+    
+    if (range === 0) return '<span>-</span>';
     
     const points = data.map((value, index) => {
         const x = (index / (data.length - 1)) * 60;
@@ -332,53 +349,134 @@ function setupMarketFilters(allMarkets) {
     const filterBtns = document.querySelectorAll('.filter-btn');
     
     filterBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
             filterBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             
             const category = btn.dataset.category;
-            const filtered = category === 'all' ? allMarkets : allMarkets.filter(m => m.category === category);
-            renderMarketTable(filtered);
+            
+            // Wenn "index" gewählt, hole World Indices
+            if (category === 'index') {
+                const response = await fetch(`${CONFIG.API_BASE_URL}/world-indices/all`);
+                const result = await response.json();
+                if (result.success) {
+                    renderMarketTable(result.data);
+                }
+            } else {
+                const filtered = category === 'all' ? allMarkets : allMarkets.filter(m => m.category === category);
+                renderMarketTable(filtered);
+            }
         });
     });
 }
 
 // ===================================
-// Market Detail Modal (TradingView Integration)
-// ===================================
-function openMarketDetail(symbol) {
-    alert(`Öffne TradingView Chart für ${symbol}\n\nKommt in der nächsten Version!`);
-    // TODO: TradingView Chart Modal implementieren
-}
-
-// ===================================
-// Fear & Greed Index Update
+// Fear & Greed Index Update (ECHT!)
 // ===================================
 async function updateFearGreedIndex() {
     try {
-        const response = await fetch(`${CONFIG.API_BASE_URL}/hybrid-market/sentiment`);
+        const response = await fetch(`${CONFIG.API_BASE_URL}/world-indices/fear-greed`);
         const result = await response.json();
         
         if (result.success) {
-            const { fearGreedIndex, sentiment } = result.data;
+            const { index, sentiment, factors } = result.data;
+            
+            console.log('🎭 ECHTER Fear & Greed:', index, sentiment);
+            console.log('📊 Faktoren:', factors);
             
             // Update Gauge
             const needle = document.querySelector('.gauge-needle');
             if (needle) {
                 // Rotate needle (0-180 degrees)
-                const rotation = (fearGreedIndex / 100) * 180;
+                const rotation = (index / 100) * 180;
                 needle.style.transform = `rotate(${rotation}deg)`;
             }
             
             // Update Value
             const valueNumber = document.querySelector('.value-number');
             const valueLabel = document.querySelector('.value-label');
-            if (valueNumber) valueNumber.textContent = fearGreedIndex;
+            if (valueNumber) valueNumber.textContent = index;
             if (valueLabel) valueLabel.textContent = sentiment;
         }
     } catch (error) {
         console.error('Error updating Fear & Greed:', error);
     }
+}
+
+// ===================================
+// Länder-Indizes laden (18 Countries)
+// ===================================
+async function loadCountryIndices(continent = 'global') {
+    try {
+        const endpoint = continent === 'global' 
+            ? `${CONFIG.API_BASE_URL}/world-indices/all`
+            : `${CONFIG.API_BASE_URL}/world-indices/continent/${continent}`;
+            
+        const response = await fetch(endpoint);
+        const result = await response.json();
+        
+        if (result.success) {
+            renderCountryIndices(result.data, continent);
+        }
+    } catch (error) {
+        console.error('Error loading country indices:', error);
+    }
+}
+
+function renderCountryIndices(indices, continent) {
+    const grid = document.getElementById('countriesIndicesGrid');
+    if (!grid) return;
+    
+    // Gruppiere nach Land
+    const byCountry = {};
+    indices.forEach(index => {
+        if (!byCountry[index.country]) {
+            byCountry[index.country] = {
+                flag: index.flag,
+                indices: []
+            };
+        }
+        byCountry[index.country].indices.push(index);
+    });
+    
+    grid.style.display = 'grid';
+    grid.innerHTML = Object.keys(byCountry).map(country => {
+        const data = byCountry[country];
+        return `
+            <div class="country-index-card">
+                <div class="country-header">
+                    <span class="country-flag">${data.flag}</span>
+                    <h4 class="country-name">${country}</h4>
+                </div>
+                <div class="country-indices">
+                    ${data.indices.map(idx => `
+                        <div class="mini-index-row" onclick="openMarketDetail('${idx.tvSymbol}', '${idx.name}')">
+                            <span class="mini-index-name">${idx.name}</span>
+                            <span class="mini-index-price">${formatPrice(idx.price)}</span>
+                            <span class="price-change ${idx.changePercent >= 0 ? 'positive' : 'negative'}">
+                                ${idx.changePercent >= 0 ? '+' : ''}${idx.changePercent}%
+                            </span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Setup Region Filter Buttons
+function setupRegionFilters() {
+    const regionBtns = document.querySelectorAll('.region-btn');
+    
+    regionBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            regionBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            const region = btn.dataset.region;
+            loadCountryIndices(region);
+        });
+    });
 }
 
 // ===================================
@@ -589,16 +687,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Setup smooth scroll navigation
     setupSmoothScroll();
     
+    // Setup region filters
+    setupRegionFilters();
+    
     // Load initial data
     updateMarketTicker();
     loadMarketTable();
     updateFearGreedIndex();
     loadPoliticalTradesPreview();
+    loadCountryIndices('global'); // Zeige alle 18 Länder
     
     // Set up periodic updates
     setInterval(updateMarketTicker, CONFIG.UPDATE_INTERVAL);
     setInterval(updateFearGreedIndex, CONFIG.UPDATE_INTERVAL);
     
     console.log('✅ Whiterock Industrie Ready!');
-    console.log('🎯 Datenquellen: CoinGecko + Alpha Vantage + Politiker-DB');
+    console.log('🎯 Datenquellen: CoinGecko (Crypto) + Alpha Vantage (Indices/Forex/Commodities) + 18-Länder-Indizes');
+    console.log('🌍 Kontinente: Americas (4) | Europe (6) | Asia (6)');
 });
