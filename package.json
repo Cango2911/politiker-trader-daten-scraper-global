@@ -1,7 +1,7 @@
 {
-  "name": "capitol-trades-global-scraper",
-  "version": "1.0.0",
-  "description": "Globaler Politiker-Trading-Daten Scraper mit REST API für Top-15-Länder",
+  "name": "whiterock-industrie",
+  "version": "2.0.0",
+  "description": "Whiterock Industrie - Global Financial Intelligence Platform & Political Investment Tracker",
   "main": "src/index.js",
   "scripts": {
     "dev": "nodemon src/index.js",

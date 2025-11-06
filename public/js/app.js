@@ -1,5 +1,5 @@
 /**
- * 🔥 FinanceHub - HYBRID MONOPOL Frontend
+ * 🔥 Whiterock Industrie - HYBRID MONOPOL Frontend
  * "Scrape Everything, Give It Back Free"
  * 
  * Features:
@@ -572,7 +572,7 @@ function hideLoading(id) {
 // Initialize Application
 // ===================================
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🔥 FinanceHub - HYBRID MONOPOL Initializing...');
+    console.log('🔥 Whiterock Industrie - HYBRID MONOPOL Initializing...');
     console.log('📡 "Scrape Everything, Give It Back Free"');
     
     // Initialize theme
@@ -599,6 +599,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(updateMarketTicker, CONFIG.UPDATE_INTERVAL);
     setInterval(updateFearGreedIndex, CONFIG.UPDATE_INTERVAL);
     
-    console.log('✅ FinanceHub Ready!');
+    console.log('✅ Whiterock Industrie Ready!');
     console.log('🎯 Datenquellen: CoinGecko + Alpha Vantage + Politiker-DB');
 });

@@ -1,6 +1,8 @@
-# 🌍 Globaler Politiker-Trading-Daten Scraper & API
+# ⚪ Whiterock Industrie - Global Financial Intelligence Platform
 
-Ein umfassendes Node.js-basiertes System zum Scrapen von Aktiengeschäften von Politikern weltweit und Bereitstellung einer REST API.
+Ein umfassendes Finanz-Intelligence-System, das Echtzeit-Marktdaten mit politischem Investment-Tracking kombiniert.
+
+**Motto:** *"Scrape Everything, Give It Back Free"* - Wir nutzen die Daten der Monopole gegen sie selbst!
 
 ## 🌟 Features
 
