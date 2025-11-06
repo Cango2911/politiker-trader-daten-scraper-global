@@ -1,6 +1,13 @@
 /**
- * FinanceHub - Modern Financial Platform
- * Main JavaScript Application
+ * 🔥 FinanceHub - HYBRID MONOPOL Frontend
+ * "Scrape Everything, Give It Back Free"
+ * 
+ * Features:
+ * - Auto-Scrolling Market Ticker
+ * - Real-Time Data from Hybrid Aggregator
+ * - TradingView Widgets Integration
+ * - Smooth Scroll Navigation
+ * - Interactive Elements
  */
 
 // ===================================
@@ -8,9 +15,9 @@
 // ===================================
 const CONFIG = {
     API_BASE_URL: window.location.origin + '/api',
-    ALPHA_VANTAGE_KEY: 'demo', // Will be replaced with actual key from backend
     UPDATE_INTERVAL: 60000, // 60 seconds
     SLIDER_INTERVAL: 5000, // 5 seconds
+    TICKER_SCROLL_SPEED: 50, // pixels per second
 };
 
 // ===================================
@@ -53,23 +60,19 @@ class HeroSlider {
         this.slides = document.querySelectorAll('.slide');
         this.dots = document.querySelectorAll('.dot');
         this.autoPlayInterval = null;
-        this.init();
+        if (this.slides.length > 0) this.init();
     }
 
     init() {
-        // Prev/Next buttons
         document.querySelector('.slider-btn.prev')?.addEventListener('click', () => this.prevSlide());
         document.querySelector('.slider-btn.next')?.addEventListener('click', () => this.nextSlide());
 
-        // Dots navigation
         this.dots.forEach((dot, index) => {
             dot.addEventListener('click', () => this.goToSlide(index));
         });
 
-        // Auto-play
         this.startAutoPlay();
         
-        // Pause on hover
         document.querySelector('.hero-slider')?.addEventListener('mouseenter', () => this.stopAutoPlay());
         document.querySelector('.hero-slider')?.addEventListener('mouseleave', () => this.startAutoPlay());
     }
@@ -106,105 +109,94 @@ class HeroSlider {
 }
 
 // ===================================
-// Market Data Manager
+// Auto-Scrolling Market Ticker
 // ===================================
-class MarketDataManager {
+class AutoScrollingTicker {
     constructor() {
-        this.cache = new Map();
-        this.cacheExpiry = 60000; // 1 minute
+        this.ticker = document.querySelector('.market-ticker');
+        this.isScrolling = false;
+        if (this.ticker) this.init();
     }
 
-    async fetchMarketData() {
+    init() {
+        // Aktiviere Auto-Scrolling wenn viele Items vorhanden sind
+        const items = this.ticker.querySelectorAll('.ticker-item');
+        if (items.length > 5) {
+            this.enableAutoScroll();
+        }
+    }
+
+    enableAutoScroll() {
+        this.isScrolling = true;
+        this.ticker.style.overflowX = 'auto';
+        this.ticker.style.scrollBehavior = 'smooth';
+        
+        let scrollDirection = 1;
+        
+        setInterval(() => {
+            if (!this.isScrolling) return;
+            
+            if (this.ticker.scrollLeft >= (this.ticker.scrollWidth - this.ticker.clientWidth)) {
+                scrollDirection = -1;
+            } else if (this.ticker.scrollLeft <= 0) {
+                scrollDirection = 1;
+            }
+            
+            this.ticker.scrollLeft += scrollDirection;
+        }, 50);
+
+        // Pause on hover
+        this.ticker.addEventListener('mouseenter', () => { this.isScrolling = false; });
+        this.ticker.addEventListener('mouseleave', () => { this.isScrolling = true; });
+    }
+}
+
+// ===================================
+// Hybrid Market Data Manager
+// ===================================
+class HybridMarketDataManager {
+    async fetchAllMarkets() {
         try {
-            // Fetch crypto data from CoinGecko
-            const cryptoData = await this.fetchCryptoData();
+            showLoading('market-ticker');
+            showLoading('marketTableBody');
             
-            // Fetch indices data (simulated for now - will use Alpha Vantage)
-            const indicesData = await this.fetchIndicesData();
+            const response = await fetch(`${CONFIG.API_BASE_URL}/hybrid-market/all`);
+            const result = await response.json();
             
-            // Fetch commodities data (simulated)
-            const commoditiesData = await this.fetchCommoditiesData();
-            
-            // Fetch forex data (simulated)
-            const forexData = await this.fetchForexData();
-            
-            return {
-                crypto: cryptoData,
-                indices: indicesData,
-                commodities: commoditiesData,
-                forex: forexData
-            };
+            if (result.success) {
+                console.log('✅ Loaded market data from:', result.sources);
+                return result.data;
+            } else {
+                console.warn('⚠️ Using fallback data');
+                return this.getFallbackData();
+            }
         } catch (error) {
-            console.error('Error fetching market data:', error);
-            return null;
+            console.error('❌ Error fetching hybrid market data:', error);
+            return this.getFallbackData();
         }
     }
 
-    async fetchCryptoData() {
-        const cached = this.getFromCache('crypto');
-        if (cached) return cached;
-
-        try {
-            const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=true');
-            const data = await response.json();
-            
-            const formatted = data.map(coin => ({
-                id: coin.id,
-                symbol: coin.symbol.toUpperCase(),
-                name: coin.name,
-                price: coin.current_price,
-                change24h: coin.price_change_percentage_24h,
-                volume: coin.total_volume,
-                marketCap: coin.market_cap,
-                image: coin.image,
-                sparkline: coin.sparkline_in_7d.price,
-                category: 'crypto'
-            }));
-            
-            this.setCache('crypto', formatted);
-            return formatted;
-        } catch (error) {
-            console.error('Error fetching crypto data:', error);
-            return [];
-        }
-    }
-
-    async fetchIndicesData() {
-        // Simulated data - will be replaced with Alpha Vantage API
-        return [
-            { symbol: 'SPX', name: 'S&P 500', price: 4550.50, change24h: 1.25, volume: 0, marketCap: 0, category: 'indices' },
-            { symbol: 'DAX', name: 'DAX 40', price: 16450.20, change24h: 0.65, volume: 0, marketCap: 0, category: 'indices' },
-            { symbol: 'IXIC', name: 'NASDAQ', price: 14200.10, change24h: 1.50, volume: 0, marketCap: 0, category: 'indices' },
-            { symbol: 'FTSE', name: 'FTSE 100', price: 7650.40, change24h: -0.30, volume: 0, marketCap: 0, category: 'indices' },
-        ];
-    }
-
-    async fetchCommoditiesData() {
-        // Simulated data
-        return [
-            { symbol: 'BRENT', name: 'Brent Crude Oil', price: 85.32, change24h: -1.38, volume: 0, marketCap: 0, category: 'commodities' },
-            { symbol: 'GOLD', name: 'Gold', price: 2050.40, change24h: 0.45, volume: 0, marketCap: 0, category: 'commodities' },
-        ];
-    }
-
-    async fetchForexData() {
-        // Simulated data
-        return [
-            { symbol: 'EURUSD', name: 'EUR/USD', price: 1.0856, change24h: 0.08, volume: 0, marketCap: 0, category: 'forex' },
-            { symbol: 'GBPUSD', name: 'GBP/USD', price: 1.2698, change24h: 0.20, volume: 0, marketCap: 0, category: 'forex' },
-        ];
-    }
-
-    getFromCache(key) {
-        const cached = this.cache.get(key);
-        if (cached && Date.now() - cached.timestamp < this.cacheExpiry) {
-            return cached.data;
-        }
-        return null;
-    }
-
-    setCache(key, data) {
-        this.cache.set(key, { data, timestamp: Date.now() });
+    getFallbackData() {
+        return {
+            crypto: [],
+            forex: [
+                { symbol: 'EURUSD', name: 'EUR/USD', price: 1.0856, changePercent: '0.08', category: 'forex' },
+                { symbol: 'GBPUSD', name: 'GBP/USD', price: 1.2698, changePercent: '0.20', category: 'forex' }
+            ],
+            indices: [
+                { symbol: 'SPX', name: 'S&P 500', price: 4550.50, changePercent: '1.25', category: 'indices' },
+                { symbol: 'DJI', name: 'Dow Jones', price: 35420.30, changePercent: '0.85', category: 'indices' },
+                { symbol: 'NDX', name: 'NASDAQ 100', price: 14200.10, changePercent: '1.50', category: 'indices' }
+            ],
+            commodities: [
+                { symbol: 'BRENT', name: 'Brent Crude Oil', price: 85.32, changePercent: '-1.38', category: 'commodities' },
+                { symbol: 'GOLD', name: 'Gold', price: 2050.40, changePercent: '0.45', category: 'commodities' }
+            ],
+            sentiment: {
+                fearGreedIndex: 47,
+                sentiment: 'Neutral'
+            }
+        };
     }
 }
 
@@ -212,40 +204,32 @@ class MarketDataManager {
 // Market Ticker Updates
 // ===================================
 async function updateMarketTicker() {
-    const marketData = new MarketDataManager();
-    const data = await marketData.fetchMarketData();
+    const manager = new HybridMarketDataManager();
+    const data = await manager.fetchAllMarkets();
     
     if (!data) return;
 
     // Update S&P 500
-    const sp500 = data.indices.find(i => i.symbol === 'SPX');
-    if (sp500) {
-        updateTickerItem('ticker-sp500', sp500.price, sp500.change24h);
-    }
+    const sp500 = data.indices.find(i => i.symbol === 'SPX' || i.symbol === 'SPY');
+    if (sp500) updateTickerItem('ticker-sp500', sp500.price, sp500.changePercent);
 
-    // Update DAX
+    // Update DAX (wenn verfügbar)
     const dax = data.indices.find(i => i.symbol === 'DAX');
-    if (dax) {
-        updateTickerItem('ticker-dax', dax.price, dax.change24h);
-    }
+    if (dax) updateTickerItem('ticker-dax', dax.price, dax.changePercent);
 
     // Update BTC
     const btc = data.crypto.find(c => c.symbol === 'BTC');
-    if (btc) {
-        updateTickerItem('ticker-btc', btc.price, btc.change24h);
-    }
+    if (btc) updateTickerItem('ticker-btc', btc.price, btc.changePercent || btc.change24h);
 
     // Update Oil
-    const oil = data.commodities.find(c => c.symbol === 'BRENT');
-    if (oil) {
-        updateTickerItem('ticker-oil', oil.price, oil.change24h);
-    }
+    const oil = data.commodities.find(c => c.symbol === 'BRENT' || c.symbol === 'WTI');
+    if (oil) updateTickerItem('ticker-oil', oil.price, oil.changePercent);
 
     // Update EUR/USD
     const eurusd = data.forex.find(f => f.symbol === 'EURUSD');
-    if (eurusd) {
-        updateTickerItem('ticker-eurusd', eurusd.price, eurusd.change24h);
-    }
+    if (eurusd) updateTickerItem('ticker-eurusd', eurusd.price, eurusd.changePercent);
+
+    hideLoading('market-ticker');
 }
 
 function updateTickerItem(id, price, change) {
@@ -260,10 +244,11 @@ function updateTickerItem(id, price, change) {
     }
 
     if (changeEl) {
-        const formattedChange = change >= 0 ? `+${change.toFixed(2)}%` : `${change.toFixed(2)}%`;
+        const changeNum = parseFloat(change);
+        const formattedChange = changeNum >= 0 ? `+${changeNum.toFixed(2)}%` : `${changeNum.toFixed(2)}%`;
         changeEl.textContent = formattedChange;
-        changeEl.classList.toggle('positive', change >= 0);
-        changeEl.classList.toggle('negative', change < 0);
+        changeEl.classList.toggle('positive', changeNum >= 0);
+        changeEl.classList.toggle('negative', changeNum < 0);
     }
 }
 
@@ -271,8 +256,8 @@ function updateTickerItem(id, price, change) {
 // Market Table Rendering
 // ===================================
 async function loadMarketTable() {
-    const marketData = new MarketDataManager();
-    const data = await marketData.fetchMarketData();
+    const manager = new HybridMarketDataManager();
+    const data = await manager.fetchAllMarkets();
     
     if (!data) {
         document.getElementById('marketTableBody').innerHTML = '<tr><td colspan="6" class="loading-cell">Failed to load market data</td></tr>';
@@ -281,13 +266,14 @@ async function loadMarketTable() {
 
     // Combine all data
     const allMarkets = [
-        ...data.crypto,
+        ...data.crypto.slice(0, 10), // Top 10 crypto
         ...data.indices,
         ...data.commodities,
         ...data.forex
     ];
 
     renderMarketTable(allMarkets);
+    hideLoading('marketTableBody');
 }
 
 function renderMarketTable(markets) {
@@ -295,7 +281,7 @@ function renderMarketTable(markets) {
     if (!tbody) return;
 
     tbody.innerHTML = markets.map(market => `
-        <tr>
+        <tr onclick="openMarketDetail('${market.symbol}')" style="cursor: pointer;">
             <td>
                 <div class="asset-info">
                     ${market.image ? `<img src="${market.image}" alt="${market.name}" class="asset-icon">` : '<span class="asset-icon">📊</span>'}
@@ -307,19 +293,18 @@ function renderMarketTable(markets) {
             </td>
             <td>${formatPrice(market.price)}</td>
             <td>
-                <span class="price-change ${market.change24h >= 0 ? 'positive' : 'negative'}">
-                    ${market.change24h >= 0 ? '+' : ''}${market.change24h.toFixed(2)}%
+                <span class="price-change ${parseFloat(market.changePercent || market.change24h || 0) >= 0 ? 'positive' : 'negative'}">
+                    ${parseFloat(market.changePercent || market.change24h || 0) >= 0 ? '+' : ''}${parseFloat(market.changePercent || market.change24h || 0).toFixed(2)}%
                 </span>
             </td>
-            <td>${market.volume > 0 ? formatVolume(market.volume) : 'N/A'}</td>
-            <td>${market.marketCap > 0 ? formatVolume(market.marketCap) : 'N/A'}</td>
+            <td>${market.volume ? formatVolume(market.volume) : 'N/A'}</td>
+            <td>${market.marketCap ? formatVolume(market.marketCap) : 'N/A'}</td>
             <td>
-                ${market.sparkline ? renderSparkline(market.sparkline) : '<span style="color: var(--text-tertiary);">No data</span>'}
+                ${market.sparkline && market.sparkline.length > 0 ? renderSparkline(market.sparkline) : '<span style="color: var(--text-tertiary);">No data</span>'}
             </td>
         </tr>
     `).join('');
 
-    // Add filter functionality
     setupMarketFilters(markets);
 }
 
@@ -356,6 +341,44 @@ function setupMarketFilters(allMarkets) {
             renderMarketTable(filtered);
         });
     });
+}
+
+// ===================================
+// Market Detail Modal (TradingView Integration)
+// ===================================
+function openMarketDetail(symbol) {
+    alert(`Öffne TradingView Chart für ${symbol}\n\nKommt in der nächsten Version!`);
+    // TODO: TradingView Chart Modal implementieren
+}
+
+// ===================================
+// Fear & Greed Index Update
+// ===================================
+async function updateFearGreedIndex() {
+    try {
+        const response = await fetch(`${CONFIG.API_BASE_URL}/hybrid-market/sentiment`);
+        const result = await response.json();
+        
+        if (result.success) {
+            const { fearGreedIndex, sentiment } = result.data;
+            
+            // Update Gauge
+            const needle = document.querySelector('.gauge-needle');
+            if (needle) {
+                // Rotate needle (0-180 degrees)
+                const rotation = (fearGreedIndex / 100) * 180;
+                needle.style.transform = `rotate(${rotation}deg)`;
+            }
+            
+            // Update Value
+            const valueNumber = document.querySelector('.value-number');
+            const valueLabel = document.querySelector('.value-label');
+            if (valueNumber) valueNumber.textContent = fearGreedIndex;
+            if (valueLabel) valueLabel.textContent = sentiment;
+        }
+    } catch (error) {
+        console.error('Error updating Fear & Greed:', error);
+    }
 }
 
 // ===================================
@@ -413,18 +436,35 @@ function renderPoliticalTradesPreview(trades) {
 }
 
 // ===================================
+// Smooth Scroll Navigation
+// ===================================
+function setupSmoothScroll() {
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+}
+
+// ===================================
 // Download Market Report
 // ===================================
 document.getElementById('downloadMarketData')?.addEventListener('click', async () => {
-    const marketData = new MarketDataManager();
-    const data = await marketData.fetchMarketData();
+    const manager = new HybridMarketDataManager();
+    const data = await manager.fetchAllMarkets();
     
     if (!data) {
         alert('Failed to fetch market data');
         return;
     }
 
-    // Combine all data
     const allMarkets = [
         ...data.crypto,
         ...data.indices,
@@ -432,26 +472,25 @@ document.getElementById('downloadMarketData')?.addEventListener('click', async (
         ...data.forex
     ];
 
-    // Create CSV
     const csv = [
-        ['Asset', 'Symbol', 'Price', 'Change 24h (%)', 'Volume', 'Market Cap', 'Category'],
+        ['Asset', 'Symbol', 'Price', 'Change 24h (%)', 'Volume', 'Market Cap', 'Category', 'Source'],
         ...allMarkets.map(m => [
             m.name,
             m.symbol,
             m.price,
-            m.change24h,
-            m.volume,
-            m.marketCap,
-            m.category
+            m.changePercent || m.change24h || 0,
+            m.volume || '',
+            m.marketCap || '',
+            m.category,
+            m.source || 'hybrid'
         ])
     ].map(row => row.join(',')).join('\n');
 
-    // Download
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `market-report-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `hybrid-market-report-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
 });
@@ -463,8 +502,7 @@ document.getElementById('newsletterForm')?.addEventListener('submit', async (e) 
     e.preventDefault();
     const email = e.target.querySelector('input[type="email"]').value;
     
-    // Simulate submission
-    alert(`Thank you for subscribing with ${email}! We'll send you daily market insights.`);
+    alert(`✅ Danke für deine Anmeldung mit ${email}!\n\nDu erhältst täglich:\n- Marktanalysen\n- Politiker-Trading-Alerts\n- AI-generierte Insights`);
     e.target.reset();
 });
 
@@ -520,11 +558,22 @@ function getCountryFlag(code) {
     return flags[code] || '🌍';
 }
 
+function showLoading(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('loading');
+}
+
+function hideLoading(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('loading');
+}
+
 // ===================================
 // Initialize Application
 // ===================================
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 FinanceHub Initializing...');
+    console.log('🔥 FinanceHub - HYBRID MONOPOL Initializing...');
+    console.log('📡 "Scrape Everything, Give It Back Free"');
     
     // Initialize theme
     new ThemeManager();
@@ -534,13 +583,22 @@ document.addEventListener('DOMContentLoaded', () => {
         new HeroSlider();
     }
     
+    // Initialize auto-scrolling ticker
+    new AutoScrollingTicker();
+    
+    // Setup smooth scroll navigation
+    setupSmoothScroll();
+    
     // Load initial data
     updateMarketTicker();
     loadMarketTable();
+    updateFearGreedIndex();
     loadPoliticalTradesPreview();
     
     // Set up periodic updates
     setInterval(updateMarketTicker, CONFIG.UPDATE_INTERVAL);
+    setInterval(updateFearGreedIndex, CONFIG.UPDATE_INTERVAL);
     
     console.log('✅ FinanceHub Ready!');
+    console.log('🎯 Datenquellen: CoinGecko + Alpha Vantage + Politiker-DB');
 });
