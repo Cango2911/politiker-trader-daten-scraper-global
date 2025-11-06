@@ -1,12 +1,16 @@
 /**
  * 🎭 FEAR & GREED INDEX SERVICE
- * Echter Fear & Greed Index basierend auf echten Marktdaten
  * 
- * Berechnung basiert auf:
- * - Crypto Market Momentum (CoinGecko)
- * - Stock Market Volatility
- * - Safe Haven Demand (Gold vs Stocks)
- * - Put/Call Ratio Simulation
+ * Primäre Quelle: Alternative.me Crypto Fear & Greed Index (OFFIZIELL!)
+ * Backup: Eigene Berechnung basierend auf CoinGecko
+ * 
+ * Alternative.me API nutzt 7 Faktoren:
+ * - Volatility (25%)
+ * - Market Momentum/Volume (25%)
+ * - Social Media (15%)
+ * - Surveys (15%)
+ * - Dominance (10%)
+ * - Trends (10%)
  */
 
 const axios = require('axios');
@@ -17,64 +21,90 @@ const cache = new NodeCache({ stdTTL: 300 });
 
 class FearGreedService {
   /**
-   * 🎭 Berechne ECHTEN Fear & Greed Index
+   * 🎭 Hole ECHTEN Fear & Greed Index von Alternative.me (CRYPTO)
    */
-  async calculateRealFearGreed() {
-    const cacheKey = 'fear_greed_real';
+  async getRealCryptoFearGreed() {
+    const cacheKey = 'fear_greed_crypto_official';
     const cached = cache.get(cacheKey);
     if (cached) return cached;
 
     try {
-      logger.info('🎭 Calculating REAL Fear & Greed Index...');
+      logger.info('🎭 Fetching OFFICIAL Crypto Fear & Greed from Alternative.me...');
+      
+      const response = await axios.get('https://api.alternative.me/fng/?limit=1', {
+        timeout: 5000
+      });
 
-      // 1. Hole Crypto-Marktdaten (ECHT von CoinGecko)
+      if (response.data && response.data.data && response.data.data[0]) {
+        const data = response.data.data[0];
+        
+        const result = {
+          index: parseInt(data.value),
+          sentiment: data.value_classification,
+          timestamp: new Date(parseInt(data.timestamp) * 1000).toISOString(),
+          source: 'alternative.me (OFFICIAL)',
+          type: 'crypto',
+          metadata: {
+            api: 'https://alternative.me',
+            updateFrequency: 'Daily at 00:00 UTC',
+            methodology: '7 factors: Volatility, Momentum, Social Media, Surveys, Dominance, Trends'
+          }
+        };
+
+        cache.set(cacheKey, result);
+        logger.info(`✅ OFFICIAL Crypto Fear & Greed: ${result.index} (${result.sentiment})`);
+        
+        return result;
+      }
+
+      throw new Error('No data from Alternative.me');
+
+    } catch (error) {
+      logger.warn('⚠️ Alternative.me API failed, using calculated backup:', error.message);
+      return this.calculateBackupFearGreed();
+    }
+  }
+
+  /**
+   * 🎭 Berechne Backup Fear & Greed (wenn API ausfällt)
+   */
+  async calculateBackupFearGreed() {
+    const cacheKey = 'fear_greed_calculated';
+    const cached = cache.get(cacheKey);
+    if (cached) return cached;
+
+    try {
+      logger.info('🎭 Calculating backup Fear & Greed from CoinGecko...');
+
       const cryptoMomentum = await this.getCryptoMomentum();
       
-      // 2. Berechne verschiedene Faktoren
-      const factors = {
-        cryptoMomentum: cryptoMomentum, // 0-100
-        marketVolatility: await this.calculateVolatility(), // 0-100
-        safeHavenDemand: await this.calculateSafeHavenDemand(), // 0-100
-        socialSentiment: await this.getSocialSentiment() // 0-100
-      };
-
-      // 3. Gewichtete Durchschnittsberechnung
-      const weights = {
-        cryptoMomentum: 0.35,
-        marketVolatility: 0.25,
-        safeHavenDemand: 0.25,
-        socialSentiment: 0.15
-      };
-
-      const fearGreedIndex = Math.round(
-        factors.cryptoMomentum * weights.cryptoMomentum +
-        factors.marketVolatility * weights.marketVolatility +
-        factors.safeHavenDemand * weights.safeHavenDemand +
-        factors.socialSentiment * weights.socialSentiment
-      );
-
       const result = {
-        index: fearGreedIndex,
-        sentiment: this.getSentimentLabel(fearGreedIndex),
-        factors: factors,
-        weights: weights,
+        index: Math.round(cryptoMomentum),
+        sentiment: this.getSentimentLabel(Math.round(cryptoMomentum)),
         timestamp: new Date().toISOString(),
-        source: 'calculated-from-real-data'
+        source: 'calculated-from-coingecko',
+        type: 'crypto'
       };
 
       cache.set(cacheKey, result);
-      logger.info(`✅ Fear & Greed: ${fearGreedIndex} (${result.sentiment})`);
-      
       return result;
 
     } catch (error) {
-      logger.error('❌ Fear & Greed calculation error:', error.message);
+      logger.error('❌ Backup calculation failed:', error.message);
       return {
         index: 50,
         sentiment: 'Neutral',
-        source: 'fallback'
+        source: 'fallback',
+        type: 'crypto'
       };
     }
+  }
+
+  /**
+   * 🎭 Master-Funktion (versucht erst Official API, dann Backup)
+   */
+  async calculateRealFearGreed() {
+    return this.getRealCryptoFearGreed();
   }
 
   /**

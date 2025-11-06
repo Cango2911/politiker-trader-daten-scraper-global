@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="light-theme">
     <!-- Header Navigation -->
@@ -107,17 +107,196 @@
         </div>
     </section>
 
+    <!-- ULTRA-MODERN Market Sentiment Dashboard -->
+    <section class="sentiment-dashboard" id="analysis">
+        <div class="container-wide">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Live Market Intelligence</h2>
+                    <p class="section-subtitle">Real-time sentiment, volatility & momentum analysis powered by Alternative.me & CoinGecko</p>
+                </div>
+                
+                <!-- Sentiment Type Switcher -->
+                <div class="sentiment-switcher">
+                    <button class="sentiment-tab active" data-type="crypto">
+                        <span class="tab-icon">₿</span>
+                        <span>Crypto</span>
+                    </button>
+                    <button class="sentiment-tab" data-type="stock">
+                        <span class="tab-icon">📊</span>
+                        <span>Stocks</span>
+                    </button>
+                    <button class="sentiment-tab" data-type="all">
+                        <span class="tab-icon">🌍</span>
+                        <span>Global</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Modern Sentiment Grid -->
+            <div class="modern-sentiment-grid">
+                <!-- ULTRA-MODERN Fear & Greed Gauge -->
+                <div class="sentiment-mega-card">
+                    <div class="card-header-modern">
+                        <h3 class="card-title-modern">
+                            <span class="title-icon">🎭</span>
+                            Fear & Greed Index
+                        </h3>
+                        <div class="data-source-badge">
+                            <span class="source-dot"></span>
+                            <span class="source-text">Alternative.me</span>
+                        </div>
+                    </div>
+                    
+                    <div class="gauge-modern-container">
+                        <svg class="gauge-svg" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Gradient Definitions -->
+                            <defs>
+                                <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
+                                    <stop offset="25%" style="stop-color:#f59e0b;stop-opacity:1" />
+                                    <stop offset="50%" style="stop-color:#eab308;stop-opacity:1" />
+                                    <stop offset="75%" style="stop-color:#84cc16;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#10b981;stop-opacity:1" />
+                                </linearGradient>
+                                <filter id="glow">
+                                    <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                                    <feMerge>
+                                        <feMergeNode in="coloredBlur"/>
+                                        <feMergeNode in="SourceGraphic"/>
+                                    </feMerge>
+                                </filter>
+                            </defs>
+                            
+                            <!-- Background Arc -->
+                            <path d="M 20 100 A 80 80 0 0 1 180 100" 
+                                  fill="none" 
+                                  stroke="url(#gaugeGradient)" 
+                                  stroke-width="20" 
+                                  stroke-linecap="round"
+                                  opacity="0.3"/>
+                            
+                            <!-- Active Arc (wird via JS animiert) -->
+                            <path id="gaugeArc" 
+                                  d="M 20 100 A 80 80 0 0 1 180 100" 
+                                  fill="none" 
+                                  stroke="url(#gaugeGradient)" 
+                                  stroke-width="20" 
+                                  stroke-linecap="round"
+                                  stroke-dasharray="251.2" 
+                                  stroke-dashoffset="251.2"
+                                  filter="url(#glow)"
+                                  class="gauge-arc-animated"/>
+                            
+                            <!-- Center Pointer (Nadel) -->
+                            <g id="gaugeNeedle" class="gauge-needle-modern" style="transform-origin: 100px 100px;">
+                                <line x1="100" y1="100" x2="100" y2="30" 
+                                      stroke="var(--text-primary)" 
+                                      stroke-width="3" 
+                                      stroke-linecap="round"/>
+                                <circle cx="100" cy="100" r="6" fill="var(--accent-primary)"/>
+                            </g>
+                        </svg>
+                        
+                        <!-- Modern Value Display -->
+                        <div class="gauge-value-modern">
+                            <div class="value-number-modern" id="fearGreedValue">--</div>
+                            <div class="value-label-modern" id="fearGreedLabel">Loading...</div>
+                            <div class="value-timestamp" id="fearGreedTimestamp">--</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sentiment Scale Labels -->
+                    <div class="gauge-labels-modern">
+                        <span class="label-fear">Extreme Fear</span>
+                        <span class="label-neutral">Neutral</span>
+                        <span class="label-greed">Extreme Greed</span>
+                    </div>
+                </div>
+                
+                <!-- Crypto Market Stats -->
+                <div class="crypto-stats-card">
+                    <h3 class="card-title-modern">
+                        <span class="title-icon">📊</span>
+                        Crypto Market Stats
+                    </h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-label">Total Market Cap</div>
+                            <div class="stat-value" id="cryptoTotalCap">Loading...</div>
+                            <div class="stat-change" id="cryptoCapChange">--</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">24h Volume</div>
+                            <div class="stat-value" id="crypto24hVolume">Loading...</div>
+                            <div class="stat-change" id="cryptoVolumeChange">--</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">BTC Dominance</div>
+                            <div class="stat-value" id="btcDominance">Loading...</div>
+                            <div class="stat-progress">
+                                <div class="progress-bar" id="btcDominanceBar" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Active Cryptos</div>
+                            <div class="stat-value" id="activeCryptos">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Live Volatility Meter -->
+                <div class="volatility-card">
+                    <h3 class="card-title-modern">
+                        <span class="title-icon">📉</span>
+                        Volatility Meter
+                    </h3>
+                    <div class="volatility-bars">
+                        <div class="vol-bar" data-timeframe="1h">
+                            <span class="vol-label">1h</span>
+                            <div class="vol-track">
+                                <div class="vol-fill" id="vol1h" style="height: 45%;"></div>
+                            </div>
+                            <span class="vol-value">2.3%</span>
+                        </div>
+                        <div class="vol-bar" data-timeframe="24h">
+                            <span class="vol-label">24h</span>
+                            <div class="vol-track">
+                                <div class="vol-fill" id="vol24h" style="height: 68%;"></div>
+                            </div>
+                            <span class="vol-value">4.8%</span>
+                        </div>
+                        <div class="vol-bar" data-timeframe="7d">
+                            <span class="vol-label">7d</span>
+                            <div class="vol-track">
+                                <div class="vol-fill" id="vol7d" style="height: 82%;"></div>
+                            </div>
+                            <span class="vol-value">7.2%</span>
+                        </div>
+                        <div class="vol-bar" data-timeframe="30d">
+                            <span class="vol-label">30d</span>
+                            <div class="vol-track">
+                                <div class="vol-fill" id="vol30d" style="height: 55%;"></div>
+                            </div>
+                            <span class="vol-value">5.1%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Market Overview Table -->
     <section class="market-overview" id="markets">
         <div class="container-wide">
             <div class="section-header">
                 <h2 class="section-title">Global Markets Overview</h2>
                 <div class="section-actions">
-                    <button class="filter-btn active" data-category="all">All</button>
-                    <button class="filter-btn" data-category="crypto">Crypto (100)</button>
-                    <button class="filter-btn" data-category="index">Indices (18 Countries)</button>
-                    <button class="filter-btn" data-category="commodities">Commodities</button>
-                    <button class="filter-btn" data-category="forex">Forex</button>
+                    <button class="filter-btn" data-category="all">All</button>
+                    <button class="filter-btn active" data-category="crypto">₿ Crypto (100)</button>
+                    <button class="filter-btn" data-category="index">🌍 Indices (18 Countries)</button>
+                    <button class="filter-btn" data-category="commodities">🛢️ Commodities</button>
+                    <button class="filter-btn" data-category="forex">💱 Forex</button>
                     <button class="btn-download" id="downloadMarketData">
                         <span>📥</span> Download Report
                     </button>
@@ -146,95 +325,21 @@
         </div>
     </section>
 
-    <!-- Market Sentiment & Heatmap -->
-    <section class="market-sentiment" id="analysis">
+    <!-- 18-Länder-Indizes Section -->
+    <section class="world-indices-section" id="world-indices">
         <div class="container-wide">
             <div class="section-header">
-                <h2 class="section-title">Market Sentiment & Analysis</h2>
+                <h2 class="section-title">18-Länder Börsenindizes</h2>
                 <div class="region-filter">
-                    <button class="region-btn active" data-region="global">🌍 Global (18 Countries)</button>
-                    <button class="region-btn" data-region="americas">🌎 Americas (4)</button>
-                    <button class="region-btn" data-region="europe">🇪🇺 Europe (6)</button>
-                    <button class="region-btn" data-region="asia">🌏 Asia (6)</button>
+                    <button class="region-btn active" data-region="global">🌍 Alle Länder</button>
+                    <button class="region-btn" data-region="americas">🌎 Americas</button>
+                    <button class="region-btn" data-region="europe">🇪🇺 Europe</button>
+                    <button class="region-btn" data-region="asia">🌏 Asia</button>
                 </div>
             </div>
             
-            <!-- Länder-Indizes Grid (wird dynamisch geladen) -->
-            <div class="countries-indices-grid" id="countriesIndicesGrid" style="display: none; margin-bottom: 3rem;">
-                <!-- Wird via JavaScript gefüllt -->
-            </div>
-            
-            <div class="sentiment-grid">
-                <!-- Fear & Greed Index -->
-                <div class="sentiment-card">
-                    <h3 class="card-title">Fear & Greed Index</h3>
-                    <div class="gauge-container">
-                        <div class="gauge" id="fearGreedGauge">
-                            <div class="gauge-needle" style="transform: rotate(85deg);"></div>
-                        </div>
-                        <div class="gauge-labels">
-                            <span>Extreme Fear</span>
-                            <span>Fear</span>
-                            <span>Neutral</span>
-                            <span>Greed</span>
-                            <span>Extreme Greed</span>
-                        </div>
-                        <div class="gauge-value">
-                            <span class="value-number">47</span>
-                            <span class="value-label">Neutral</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Market Heatmap -->
-                <div class="sentiment-card wide">
-                    <h3 class="card-title">Sector Performance Heatmap</h3>
-                    <div class="heatmap-container" id="sectorHeatmap">
-                        <div class="heatmap-item positive large" data-sector="tech">
-                            <span class="heatmap-label">Technology</span>
-                            <span class="heatmap-value">+3.2%</span>
-                        </div>
-                        <div class="heatmap-item positive medium" data-sector="finance">
-                            <span class="heatmap-label">Finance</span>
-                            <span class="heatmap-value">+1.8%</span>
-                        </div>
-                        <div class="heatmap-item negative medium" data-sector="energy">
-                            <span class="heatmap-label">Energy</span>
-                            <span class="heatmap-value">-1.4%</span>
-                        </div>
-                        <div class="heatmap-item positive small" data-sector="healthcare">
-                            <span class="heatmap-label">Healthcare</span>
-                            <span class="heatmap-value">+0.9%</span>
-                        </div>
-                        <div class="heatmap-item negative large" data-sector="realestate">
-                            <span class="heatmap-label">Real Estate</span>
-                            <span class="heatmap-value">-2.1%</span>
-                        </div>
-                        <div class="heatmap-item positive medium" data-sector="consumer">
-                            <span class="heatmap-label">Consumer</span>
-                            <span class="heatmap-value">+1.3%</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- AI Market Insights -->
-                <div class="sentiment-card">
-                    <h3 class="card-title">🤖 AI Market Insights</h3>
-                    <div class="ai-insights">
-                        <div class="insight-item">
-                            <span class="insight-icon">📈</span>
-                            <p>Tech sector showing strong momentum with AI stocks leading gains</p>
-                        </div>
-                        <div class="insight-item">
-                            <span class="insight-icon">⚠️</span>
-                            <p>Energy sector facing headwinds from oversupply concerns</p>
-                        </div>
-                        <div class="insight-item">
-                            <span class="insight-icon">💡</span>
-                            <p>Institutional buying in Bitcoin suggests bullish sentiment continuation</p>
-                        </div>
-                    </div>
-                </div>
+            <div class="countries-indices-grid" id="countriesIndicesGrid">
+                <div class="loading-cell">Loading countries...</div>
             </div>
         </div>
     </section>
@@ -422,7 +527,7 @@
             </div>
             
             <div class="footer-bottom">
-                <p class="footer-copyright">© 2025 Whiterock Industrie. All rights reserved. Real-time data powered by Alpha Vantage & CoinGecko.</p>
+                <p class="footer-copyright">© 2025 Whiterock Industrie. All rights reserved. Real-time data powered by Alternative.me, CoinGecko & Alpha Vantage.</p>
                 <div class="footer-social">
                     <a href="#" aria-label="Twitter">𝕏</a>
                     <a href="#" aria-label="LinkedIn">in</a>
@@ -437,5 +542,6 @@
     
     <script src="/js/app.js"></script>
     <script src="/js/tradingview-widgets.js"></script>
+    <script src="/js/modern-sentiment.js"></script>
 </body>
 </html>
