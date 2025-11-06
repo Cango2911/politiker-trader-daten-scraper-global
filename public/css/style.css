@@ -1,6 +1,8 @@
 /* ===================================
-   FinanceHub - Modern Financial Platform
+   ⚪ Whiterock Industrie
+   Global Financial Intelligence Platform
    Design: FT.com + CoinMarketCap Fusion
+   Motto: "Scrape Everything, Give It Back Free"
    =================================== */
 
 /* CSS Variables for Theming */
@@ -82,6 +84,7 @@ body {
 
 .logo-icon {
     font-size: 2rem;
+    filter: drop-shadow(0 2px 4px rgba(255,255,255,0.3));
 }
 
 .logo-text {
@@ -89,6 +92,10 @@ body {
     font-size: 1.75rem;
     font-weight: 800;
     letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text-primary), var(--accent-primary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .logo-accent {
